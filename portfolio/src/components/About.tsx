@@ -10,8 +10,8 @@ const skills = [
 ];
 
 const popAnimation = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     scale: 0.9,
     y: 30
   },
@@ -20,7 +20,7 @@ const popAnimation = {
     scale: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: "spring" as const,
       duration: 0.6,
       bounce: 0.2
     }

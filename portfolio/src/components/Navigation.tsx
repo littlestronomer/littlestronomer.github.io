@@ -47,13 +47,12 @@ export default function Navigation() {
           </div>
 
           {/* Desktop Navigation */}
-          <ul style={{ 
-            display: 'flex', 
-            listStyle: 'none', 
+          <ul style={{
+            display: 'flex',
+            listStyle: 'none',
             gap: '2rem',
             margin: 0,
-            padding: 0,
-            '@media (max-width: 768px)': { display: 'none' }
+            padding: 0
           }} className="desktop-nav">
             {navItems.map((item) => (
               <li key={item.label}>
@@ -117,7 +116,6 @@ export default function Navigation() {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               style={{
-                display: 'none',
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -125,8 +123,7 @@ export default function Navigation() {
                 height: '32px',
                 background: 'none',
                 border: 'none',
-                cursor: 'pointer',
-                '@media (max-width: 768px)': { display: 'flex' }
+                cursor: 'pointer'
               }}
               className="mobile-menu-btn"
             >

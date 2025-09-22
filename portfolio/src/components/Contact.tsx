@@ -3,8 +3,8 @@ import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 
 const popAnimation = {
-  hidden: { 
-    opacity: 0, 
+  hidden: {
+    opacity: 0,
     scale: 0.85,
     y: 40
   },
@@ -13,7 +13,7 @@ const popAnimation = {
     scale: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: "spring" as const,
       duration: 0.7,
       bounce: 0.25
     }
