@@ -12,8 +12,8 @@ const skillCategories = [
     skills: ["PyTorch", "TensorRT", "ONNX", "Hugging Face", "PyTorch Dynamo"]
   },
   {
-    title: "Domains",
-    skills: ["Speech Processing", "Computer Vision", "Generative AI", "Diffusion", "Sequence Models"]
+    title: "Generative Architectures",
+    skills: ["Flow Matching", "Diffusion", "Normalizing Flows", "Autoregressive Models", "Autoencoders", "GANs"]
   },
   {
     title: "Optimization",

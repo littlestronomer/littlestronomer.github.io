@@ -44,10 +44,7 @@ export default function Navigation() {
         <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0' }}>
           {/* Logo */}
           <a href="#home" className="nav-brand" style={{ textDecoration: 'none' }}>
-            <div className="nav-brand-topline">
-              <span className="nav-brand-core">ls</span>
-              <sup className="nav-brand-sup">littlestronomer</sup>
-            </div>
+            <span className="nav-brand-superscript">littlestronomer</span>
             <span className="nav-brand-sub">CUDA x AI Systems</span>
           </a>
 

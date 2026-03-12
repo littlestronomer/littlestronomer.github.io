@@ -5,13 +5,16 @@ const focusTags = [
   'CUDA',
   'TensorRT',
   'PyTorch',
+  'Flow Matching',
+  'Diffusion',
+  'Normalizing Flows',
+  'Autoregressive Models',
+  'Autoencoders',
+  'GANs',
   'Speech Processing',
   'Computer Vision',
-  'LLM Fine-Tuning',
   'Real-Time Systems',
   'Parallel Computing',
-  'Diffusion Models',
-  'FastAPI',
 ];
 
 const highlights = [
@@ -85,13 +88,18 @@ export default function About() {
               className="about-copy card"
             >
               <p>
-                My favorite problems live where research meets performance engineering: speech and
-                audio systems, model acceleration, low-latency inference, and tooling that makes AI
+                My favorite problems live where research meets performance engineering: generative
+                model design, model acceleration, low-latency inference, and tooling that makes AI
                 feel responsive instead of theatrical.
               </p>
               <p>
                 Right now that instinct shows up in MLSys work on Gated DeltaNet, where I am
                 focused on decode and prefill behavior through a practical GPU-systems lens.
+              </p>
+              <p>
+                I also spend a lot of time studying generative AI architectures directly: flow
+                matching, diffusion, normalizing flows, autoregressive models, autoencoders, and
+                GANs. I care about the modeling ideas themselves, not only the applications built on top.
               </p>
               <p>
                 I have worked on large-scale audio preprocessing, XTTS and CosyVoice fine-tuning,
