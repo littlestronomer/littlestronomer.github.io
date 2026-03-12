@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 
 const GITHUB_USERNAME = 'littlestronomer';
-const CACHE_KEY = `portfolio-github-data:v2:${GITHUB_USERNAME}`;
+const CACHE_KEY = `portfolio-github-data:v3:${GITHUB_USERNAME}`;
 const CACHE_TTL = 15 * 60 * 1000;
 const FEATURED_TOPICS = new Set(['featured', 'portfolio']);
-const RECENT_COMMIT_REPO_LIMIT = 8;
-const RECENT_COMMITS_PER_REPO = 8;
+const PUBLIC_COMMITS_PER_REPO = 12;
+const PUBLIC_COMMIT_LIST_LIMIT = 12;
 
 interface GitHubProfileResponse {
   login: string;
@@ -90,6 +90,7 @@ export interface GitHubPortfolioData {
   featuredRepos: GitHubRepo[];
   allRepoCount: number;
   recentCommits: GitHubRecentCommit[];
+  publicCommitCountLastYear: number;
 }
 
 interface CachedGitHubPortfolioData {
@@ -190,16 +191,13 @@ async function fetchRecentCommits(repos: GitHubRepoResponse[]) {
 
   const trackedRepos = repos
     .filter((repo) => !repo.private && !repo.archived && !repo.disabled)
-    .sort(
-      (left, right) => new Date(right.pushed_at).getTime() - new Date(left.pushed_at).getTime(),
-    )
-    .slice(0, RECENT_COMMIT_REPO_LIMIT);
+    .sort((left, right) => new Date(right.pushed_at).getTime() - new Date(left.pushed_at).getTime());
 
   const commitBatches = await Promise.all(
     trackedRepos.map(async (repo) => {
       try {
         const commits = await fetchJson<GitHubCommitResponse[]>(
-          `/repos/${repo.full_name}/commits?author=${GITHUB_USERNAME}&per_page=${RECENT_COMMITS_PER_REPO}&since=${encodeURIComponent(oneYearAgo.toISOString())}`,
+          `/repos/${repo.full_name}/commits?author=${GITHUB_USERNAME}&per_page=${PUBLIC_COMMITS_PER_REPO}&since=${encodeURIComponent(oneYearAgo.toISOString())}`,
         );
 
         return commits.map((commit) => ({
@@ -217,12 +215,16 @@ async function fetchRecentCommits(repos: GitHubRepoResponse[]) {
     }),
   );
 
-  return commitBatches
+  const commits = commitBatches
     .flat()
     .sort(
       (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-    )
-    .slice(0, 8);
+    );
+
+  return {
+    recentCommits: commits.slice(0, PUBLIC_COMMIT_LIST_LIMIT),
+    publicCommitCountLastYear: commits.length,
+  };
 }
 
 function readCache(maxAge = CACHE_TTL) {
@@ -291,13 +293,14 @@ async function fetchGitHubPortfolioData() {
   ]);
 
   const repoSelection = selectFeaturedRepos(repoResponse);
-  const recentCommits = await fetchRecentCommits(repoResponse);
+  const commitData = await fetchRecentCommits(repoResponse);
 
   return {
     profile: toProfile(profileResponse),
     featuredRepos: repoSelection.featuredRepos,
     allRepoCount: repoSelection.allRepoCount,
-    recentCommits,
+    recentCommits: commitData.recentCommits,
+    publicCommitCountLastYear: commitData.publicCommitCountLastYear,
   } satisfies GitHubPortfolioData;
 }
 

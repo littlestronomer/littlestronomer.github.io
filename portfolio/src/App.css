@@ -364,6 +364,30 @@
   margin-bottom: 0.2rem;
 }
 
+.hero-activity-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(126, 214, 178, 0.1);
+  border-radius: 14px;
+  background: rgba(126, 214, 178, 0.04);
+}
+
+.hero-activity-count {
+  color: var(--accent-strong);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.hero-activity-label {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .hero-activity-list {
   width: 100%;
 }

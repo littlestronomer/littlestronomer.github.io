@@ -18,6 +18,7 @@ export default function Hero() {
   const [subtitle, setSubtitle] = useState('');
   const [isSelected, setIsSelected] = useState(false);
   const recentCommits = data?.recentCommits ?? [];
+  const yearlyCommitCount = data?.publicCommitCountLastYear ?? 0;
 
   const firstName = 'Göktürk Batın';
   const lastName = 'Dervişoğlu';
@@ -168,11 +169,16 @@ export default function Hero() {
             className="card hero-activity-card"
           >
             <p className="panel-label">Public Activity</p>
-            <h2 className="panel-title">Recent public commits</h2>
+            <h2 className="panel-title">Public commits from the last year</h2>
             <p className="panel-copy hero-activity-copy">
-              This is pulled from your public repositories directly, so it reflects actual recent
-              work rather than GitHub&apos;s limited public events feed.
+              Showing the latest public commits from the last 12 months across your public
+              repositories.
             </p>
+
+            <div className="hero-activity-summary">
+              <span className="hero-activity-count">{isLoading ? '--' : yearlyCommitCount}</span>
+              <span className="hero-activity-label">public commits found in the last year</span>
+            </div>
 
             <div className="commit-log-list hero-activity-list">
               {isLoading &&
@@ -206,8 +212,8 @@ export default function Hero() {
 
             {!isLoading && recentCommits.length === 0 && (
               <div className="github-empty-state compact-empty-state">
-                <h3>No recent public commits.</h3>
-                <p>As soon as public repo commits are available, they will appear here.</p>
+                <h3>No public commits found for the last year.</h3>
+                <p>If public repo commits appear later, they will be listed here.</p>
               </div>
             )}
           </motion.aside>
