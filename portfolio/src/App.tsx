@@ -3,6 +3,7 @@ import { AnimationProvider } from './contexts/AnimationContext';
 import MatrixBackground from './components/MatrixBackground';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
+import CurrentWork from './components/CurrentWork';
 import About from './components/About';
 import Projects from './components/Projects';
 import Skills from './components/Skills';
@@ -24,8 +25,9 @@ function App() {
         <Navigation />
         <main className="main-content">
           <Hero />
-          <About />
+          <CurrentWork />
           <Projects />
+          <About />
           <Skills />
           <Contact />
         </main>

@@ -1,18 +1,30 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
-const highlights = [
-  '3.7TB+ audio pipeline',
-  '2x-4x faster than real time',
-  'Merged open-source contributions',
+const titles = [
+  'AI Engineer / ML Systems Researcher',
+  'CUDA Developer / Inference Optimizer',
+  'Builder of fast speech and multimodal tools',
 ];
 
-const titles = ['AI Engineer', 'ML Systems Researcher', 'CUDA Developer'];
+const highlightCards = [
+  { label: 'Current track', value: 'MLSys x NVIDIA' },
+  { label: 'Current target', value: 'Gated DeltaNet' },
+  { label: 'Bias', value: 'Latency over fluff' },
+];
 
-const focusAreas = [
-  'Low-latency speech and multimodal systems',
-  'CUDA, TensorRT, and inference optimization',
-  'Research-minded product engineering',
+const consoleRows = [
+  { key: 'mode', value: 'active optimization' },
+  { key: 'focus', value: 'decode + prefill stages' },
+  { key: 'style', value: 'kernel-aware systems thinking' },
+  { key: 'next', value: 'public repo soon' },
+];
+
+const consoleTrace = [
+  'inspect hot path',
+  'reduce prefill drag',
+  'tighten decode loop',
+  'ship the clean version',
 ];
 
 export default function Hero() {
@@ -36,12 +48,12 @@ export default function Hero() {
       }
 
       window.clearInterval(typeInterval);
-      window.setTimeout(() => setIsTypingComplete(true), 500);
-    }, 90);
+      window.setTimeout(() => setIsTypingComplete(true), 350);
+    }, 80);
 
     const cursorInterval = window.setInterval(() => {
       setShowCursor((previous) => !previous);
-    }, 500);
+    }, 480);
 
     return () => {
       window.clearInterval(typeInterval);
@@ -50,7 +62,7 @@ export default function Hero() {
   }, [fullText]);
 
   useEffect(() => {
-    const startDelay = 2800;
+    const startDelay = 2400;
     let titleIndex = 0;
     let typeTitleId = 0;
     let pauseTimeoutId = 0;
@@ -75,9 +87,9 @@ export default function Hero() {
           loopTimeoutId = window.setTimeout(() => {
             titleIndex = (titleIndex + 1) % titles.length;
             cycleSubtitle();
-          }, 280);
-        }, 1900);
-      }, 70);
+          }, 420);
+        }, 1800);
+      }, 44);
     };
 
     const startTimeoutId = window.setTimeout(() => {
@@ -95,21 +107,22 @@ export default function Hero() {
   return (
     <section id="home" className="section hero-section">
       <div className="container">
-        <div className="hero-grid">
+        <div className="hero-shell">
           <motion.div
             initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="hero-copy-block"
+            className="hero-main"
           >
-            <span className="hero-eyebrow">Istanbul x Waterloo | AI systems | CUDA-first engineering</span>
+            <span className="hero-badge">Live from MLSys conference, currently in the NVIDIA track</span>
+            <p className="hero-pretitle">Research Lab Console / Personal Site / GPU-Aware AI Systems</p>
 
             <h1 className="hero-title">
               {text}
               {!isTypingComplete && (
                 <span
                   className="hero-cursor"
-                  style={{ opacity: showCursor ? 0.8 : 0 }}
+                  style={{ opacity: showCursor ? 0.85 : 0 }}
                   aria-hidden="true"
                 />
               )}
@@ -118,13 +131,12 @@ export default function Hero() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 2.8, duration: 0.5 }}
-              className="hero-rotating-title"
+              transition={{ delay: 2.5, duration: 0.45 }}
+              className="hero-subtitle-wrap"
             >
-              <span
-                className={`hero-rotating-title-text${isSelecting ? ' is-selected' : ''}`}
-              >
-                {subtitle}
+              <span className="hero-subtitle-prefix">&gt; role</span>
+              <span className={`hero-subtitle-line${isSelecting ? ' is-selected' : ''}`}>
+                {subtitle || '\u00A0'}
               </span>
               <span className="hero-rotating-cursor">|</span>
             </motion.div>
@@ -132,73 +144,80 @@ export default function Hero() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 3.2, duration: 0.5 }}
+              transition={{ delay: 2.8, duration: 0.5 }}
               className="hero-description"
             >
-              I build low-latency AI systems that feel immediate, from speech pipelines and
-              CUDA-accelerated inference to multimodal tools that turn research into usable
-              products.
+              I like the part of AI where ideas collide with hardware: CUDA, inference hot paths,
+              speech systems, multimodal tooling, and the small performance decisions that decide
+              whether something feels instant or unusable.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 3.4, duration: 0.45 }}
-              className="hero-highlight-row"
+              transition={{ delay: 3.1, duration: 0.45 }}
+              className="hero-actions"
             >
-              {highlights.map((highlight) => (
-                <span key={highlight} className="hero-highlight-pill">
-                  {highlight}
-                </span>
-              ))}
+              <a href="#current-work" className="btn btn-primary">
+                See Current Work
+              </a>
+              <a href="#projects" className="btn btn-secondary">
+                Open Public GitHub Surface
+              </a>
+              <a href="/Awesome_CV.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                Resume
+              </a>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 3.8, duration: 0.5 }}
-              className="hero-actions"
+              transition={{ delay: 3.25, duration: 0.5 }}
+              className="hero-meta-grid"
             >
-              <a href="#projects" className="btn btn-primary">
-                Explore GitHub Work
-              </a>
-              <a href="/Awesome_CV.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-                Open Resume
-              </a>
+              {highlightCards.map((card) => (
+                <div key={card.label} className="hero-meta-card">
+                  <span className="hero-meta-label">{card.label}</span>
+                  <strong className="hero-meta-value">{card.value}</strong>
+                </div>
+              ))}
             </motion.div>
           </motion.div>
 
           <motion.aside
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 3.5, duration: 0.55 }}
-            className="hero-panel card"
+            transition={{ delay: 2.9, duration: 0.55 }}
+            className="card hero-console"
           >
-            <p className="panel-label">Current Focus</p>
-            <h2 className="panel-title">Latency, throughput, and research that survives contact with production.</h2>
-            <p className="panel-copy">
-              I care about the full stack of modern AI systems: model behavior, kernel-level
-              performance, developer ergonomics, and user-facing responsiveness.
-            </p>
+            <div className="console-head">
+              <div>
+                <p className="panel-label">Live Console</p>
+                <h2 className="console-title">Current work, current obsessions, current signal.</h2>
+              </div>
+              <div className="console-leds" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
 
-            <div className="hero-focus-list">
-              {focusAreas.map((area) => (
-                <div key={area} className="hero-focus-item">
-                  <span className="hero-focus-dot" />
-                  <span>{area}</span>
+            <div className="console-grid">
+              {consoleRows.map((row) => (
+                <div key={row.key} className="console-row">
+                  <span className="console-key">{row.key}</span>
+                  <span className="console-value">{row.value}</span>
                 </div>
               ))}
             </div>
 
-            <div className="hero-panel-footer">
-              <div>
-                <span className="panel-foot-label">Best fit</span>
-                <strong>ML systems, GPU optimization, speech/audio, multimodal tooling</strong>
-              </div>
-              <div>
-                <span className="panel-foot-label">Open to</span>
-                <strong>Research collaborations, internships, and ambitious engineering teams</strong>
-              </div>
+            <div className="console-trace">
+              {consoleTrace.map((item, index) => (
+                <div key={item} className="console-trace-item">
+                  <span className="console-trace-index">0{index + 1}</span>
+                  <span>{item}</span>
+                </div>
+              ))}
             </div>
           </motion.aside>
         </div>

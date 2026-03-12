@@ -13,7 +13,7 @@ const skillCategories = [
   },
   {
     title: "Domains",
-    skills: ["Speech Processing", "Computer Vision", "Generative AI", "Diffusion", "LLM Fine-Tuning"]
+    skills: ["Speech Processing", "Computer Vision", "Generative AI", "Diffusion", "Sequence Models"]
   },
   {
     title: "Optimization",

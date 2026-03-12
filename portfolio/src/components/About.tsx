@@ -16,6 +16,11 @@ const focusTags = [
 
 const highlights = [
   {
+    label: 'Current',
+    value: 'MLSys / NVIDIA',
+    detail: 'Actively working on Gated DeltaNet decode and prefill optimization with a teammate.',
+  },
+  {
     label: 'Scale',
     value: '3.7TB+',
     detail: 'Audio preprocessing pipeline designed for large multi-format datasets.',
@@ -29,11 +34,6 @@ const highlights = [
     label: 'Research',
     value: 'F1 0.92',
     detail: 'Idiomatic expression detection across Turkish and Italian NLP settings.',
-  },
-  {
-    label: 'Proof',
-    value: 'OSS + awards',
-    detail: 'Hackathon placements, merged contributions, and public experimentation.',
   },
 ];
 
@@ -90,14 +90,14 @@ export default function About() {
                 feel responsive instead of theatrical.
               </p>
               <p>
+                Right now that instinct shows up in MLSys work on Gated DeltaNet, where I am
+                focused on decode and prefill behavior through a practical GPU-systems lens.
+              </p>
+              <p>
                 I have worked on large-scale audio preprocessing, XTTS and CosyVoice fine-tuning,
                 real-time diarization and transcription, idiomatic expression detection, and
                 machine unlearning on diffusion models. I care as much about how a system runs as
                 what it predicts.
-              </p>
-              <p>
-                The throughline is simple: build things that are technically sharp, experimentally
-                grounded, and fast enough to matter in the real world.
               </p>
 
               <div className="about-tags">
