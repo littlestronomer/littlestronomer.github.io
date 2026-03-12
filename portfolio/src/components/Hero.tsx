@@ -32,7 +32,7 @@ export default function Hero() {
   const [showCursor, setShowCursor] = useState(true);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [subtitle, setSubtitle] = useState('');
-  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedCharacters, setSelectedCharacters] = useState(0);
 
   const firstName = 'Göktürk Batın';
   const lastName = 'Dervişoğlu';
@@ -62,52 +62,67 @@ export default function Hero() {
   }, [fullText]);
 
   useEffect(() => {
-    const startDelay = 2400;
+    const startDelay = 2200;
     let titleIndex = 0;
-    let typeTitleId = 0;
-    let pauseTimeoutId = 0;
-    let loopTimeoutId = 0;
+    let charIndex = 0;
+    let selectionIndex = 0;
+    let timeoutId = 0;
 
-    const cycleSubtitle = () => {
+    const typeSubtitle = () => {
       const currentTitle = titles[titleIndex];
-      let charIndex = 0;
+      if (charIndex <= currentTitle.length) {
+        setSubtitle(currentTitle.slice(0, charIndex));
+        setSelectedCharacters(0);
+        charIndex += 1;
+        timeoutId = window.setTimeout(typeSubtitle, 44);
+        return;
+      }
 
-      typeTitleId = window.setInterval(() => {
-        if (charIndex <= currentTitle.length) {
-          setSubtitle(currentTitle.slice(0, charIndex));
-          setIsSelecting(false);
-          charIndex += 1;
-          return;
-        }
-
-        window.clearInterval(typeTitleId);
-        pauseTimeoutId = window.setTimeout(() => {
-          setIsSelecting(true);
-
-          loopTimeoutId = window.setTimeout(() => {
-            titleIndex = (titleIndex + 1) % titles.length;
-            cycleSubtitle();
-          }, 420);
-        }, 1800);
-      }, 44);
+      timeoutId = window.setTimeout(selectSubtitle, 1050);
     };
 
     const startTimeoutId = window.setTimeout(() => {
-      cycleSubtitle();
+      typeSubtitle();
     }, startDelay);
+
+    const selectSubtitle = () => {
+      const currentTitle = titles[titleIndex];
+      if (selectionIndex <= currentTitle.length) {
+        setSelectedCharacters(selectionIndex);
+        selectionIndex += 1;
+        timeoutId = window.setTimeout(selectSubtitle, 18);
+        return;
+      }
+
+      timeoutId = window.setTimeout(() => {
+        setSubtitle('');
+        setSelectedCharacters(0);
+        charIndex = 0;
+        selectionIndex = 0;
+        titleIndex = (titleIndex + 1) % titles.length;
+        timeoutId = window.setTimeout(typeSubtitle, 180);
+      }, 110);
+    };
 
     return () => {
       window.clearTimeout(startTimeoutId);
-      window.clearTimeout(pauseTimeoutId);
-      window.clearTimeout(loopTimeoutId);
-      window.clearInterval(typeTitleId);
+      window.clearTimeout(timeoutId);
     };
   }, []);
+
+  const selectedSubtitle = subtitle.slice(0, selectedCharacters);
+  const unselectedSubtitle = subtitle.slice(selectedCharacters);
 
   return (
     <section id="home" className="section hero-section">
       <div className="container">
         <div className="hero-shell">
+          <div className="hero-lighting" aria-hidden="true">
+            <span className="hero-light hero-light-primary" />
+            <span className="hero-light hero-light-secondary" />
+            <span className="hero-light hero-light-beam" />
+          </div>
+
           <motion.div
             initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -134,9 +149,10 @@ export default function Hero() {
               transition={{ delay: 2.5, duration: 0.45 }}
               className="hero-subtitle-wrap"
             >
-              <span className="hero-subtitle-prefix">&gt; role</span>
-              <span className={`hero-subtitle-line${isSelecting ? ' is-selected' : ''}`}>
-                {subtitle || '\u00A0'}
+              <span className="hero-subtitle-prefix">gokturk@lab:~$</span>
+              <span className="hero-subtitle-line">
+                <span className="hero-subtitle-selected">{selectedSubtitle}</span>
+                <span className="hero-subtitle-plain">{unselectedSubtitle || (!selectedSubtitle ? '\u00A0' : '')}</span>
               </span>
               <span className="hero-rotating-cursor">|</span>
             </motion.div>

@@ -43,12 +43,13 @@ export default function Navigation() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
         <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0' }}>
           {/* Logo */}
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            <span style={{ color: '#76b900', display: 'block', lineHeight: 1 }}>littlestronomer</span>
-            <span style={{ color: '#7ed6b2', display: 'block', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              CUDA x AI Systems
-            </span>
-          </div>
+          <a href="#home" className="nav-brand" style={{ textDecoration: 'none' }}>
+            <div className="nav-brand-topline">
+              <span className="nav-brand-core">ls</span>
+              <sup className="nav-brand-sup">littlestronomer</sup>
+            </div>
+            <span className="nav-brand-sub">CUDA x AI Systems</span>
+          </a>
 
           {/* Desktop Navigation */}
           <ul style={{
