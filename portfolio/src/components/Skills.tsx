@@ -4,28 +4,28 @@ import { useRef } from 'react';
 
 const skillCategories = [
   {
-    title: "Programming",
-    skills: ["Python", "CUDA", "C/C++", "WebGL", "SQL"]
+    title: "Languages & Core Systems",
+    skills: ["Python", "CUDA", "C/C++", "SQL", "Linux"]
   },
   {
-    title: "ML/AI Frameworks",
-    skills: ["PyTorch", "TensorFlow", "TensorRT", "ONNX", "Hugging Face"]
+    title: "Modeling & Inference",
+    skills: ["PyTorch", "TensorRT", "ONNX", "Hugging Face", "PyTorch Dynamo"]
   },
   {
-    title: "Computer Vision",
-    skills: ["OpenCV", "Segmentation", "Object Detection", "Image Matching", "3D Vision"]
+    title: "Domains",
+    skills: ["Speech Processing", "Computer Vision", "Generative AI", "Diffusion", "LLM Fine-Tuning"]
   },
   {
-    title: "Data & Analysis",
-    skills: ["Pandas", "NumPy", "XGBoost", "Scikit-learn", "Weights & Biases", "Plotly"]
+    title: "Optimization",
+    skills: ["CUDA Kernel Work", "Post-Training Quantization", "Compilation", "Real-Time Pipelines", "Parallel Computing"]
   },
   {
     title: "Deployment",
-    skills: ["Docker", "Kubernetes", "FastAPI", "ONNX Runtime", "TensorRT"]
+    skills: ["Docker", "FastAPI", "ONNX Runtime", "TensorRT", "MLOps Basics"]
   },
   {
-    title: "Tools & Systems",
-    skills: ["Git", "Linux", "CUDA Toolkit", "Conda", "LaTeX"]
+    title: "Workflow",
+    skills: ["Git", "Conda", "Weights & Biases", "Tableau", "LaTeX"]
   }
 ];
 
@@ -59,7 +59,14 @@ export default function Skills() {
           animate={isInView ? "visible" : "hidden"}
           variants={popAnimation}
         >
-          <h2 className="section-title">Technical Skills</h2>
+          <div className="section-heading">
+            <span className="section-kicker">Skill Stack</span>
+            <h2 className="section-title">What I use to build and optimize</h2>
+            <p className="section-subtitle">
+              The stack leans toward GPU-aware machine learning, real-time pipelines, and tooling
+              that helps experiments turn into dependable systems.
+            </p>
+          </div>
           
           <div className="grid grid-cols-3">
             {skillCategories.map((category, index) => (

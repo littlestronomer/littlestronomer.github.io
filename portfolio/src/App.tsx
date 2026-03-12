@@ -15,6 +15,8 @@ function App() {
     window.scrollTo(0, 0);
   }, []);
 
+  const currentYear = new Date().getFullYear();
+
   return (
     <AnimationProvider>
       <div className="app">
@@ -29,7 +31,10 @@ function App() {
         </main>
         <footer className="footer">
           <div className="container">
-            <p>© 2025 Göktürk Batın Dervişoğlu. All Rights Reserved.</p>
+            <p>
+              © {currentYear} Göktürk Batın Dervişoğlu. Built in React, styled around code,
+              latency, and GPU systems.
+            </p>
           </div>
         </footer>
       </div>

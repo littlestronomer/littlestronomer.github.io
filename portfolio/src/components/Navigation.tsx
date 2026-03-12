@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAnimation } from '../contexts/AnimationContext';
+import { useAnimation } from '../contexts/useAnimation';
 
 const navItems = [
   { label: 'Home', href: '#home' },
@@ -32,9 +32,10 @@ export default function Navigation() {
         top: 0,
         width: '100%',
         zIndex: 50,
-        backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.95)' : 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: scrolled ? '2px solid #76b900' : 'none',
+        backgroundColor: scrolled ? 'rgba(3, 7, 10, 0.88)' : 'rgba(3, 7, 10, 0.56)',
+        backdropFilter: 'blur(14px)',
+        borderBottom: `1px solid ${scrolled ? 'rgba(126, 214, 178, 0.24)' : 'rgba(126, 214, 178, 0.08)'}`,
+        boxShadow: scrolled ? '0 12px 36px rgba(0, 0, 0, 0.18)' : 'none',
         transition: 'all 0.3s ease'
       }}
     >
@@ -42,8 +43,10 @@ export default function Navigation() {
         <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 0' }}>
           {/* Logo */}
           <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-            <span style={{ color: '#76b900' }}>Dev</span>
-            <span style={{ color: '#a0e426' }}>CUDA</span>
+            <span style={{ color: '#76b900', display: 'block', lineHeight: 1 }}>littlestronomer</span>
+            <span style={{ color: '#7ed6b2', display: 'block', fontSize: '0.7rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              CUDA x AI Systems
+            </span>
           </div>
 
           {/* Desktop Navigation */}
@@ -59,18 +62,18 @@ export default function Navigation() {
                 <a
                   href={item.href}
                   style={{
-                    color: '#a0e426',
-                    textDecoration: 'none',
-                    fontWeight: 'bold',
-                    fontSize: '0.875rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    transition: 'color 0.3s ease',
-                    position: 'relative'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#33ff33'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#a0e426'}
-                >
+                      color: '#a0e426',
+                      textDecoration: 'none',
+                      fontWeight: 'bold',
+                      fontSize: '0.875rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      transition: 'color 0.3s ease',
+                      position: 'relative'
+                    }}
+                   onMouseEnter={(e) => e.currentTarget.style.color = '#c7ff84'}
+                   onMouseLeave={(e) => e.currentTarget.style.color = '#a0e426'}
+                 >
                   {item.label}
                 </a>
               </li>
@@ -94,13 +97,14 @@ export default function Navigation() {
                 transition: 'all 0.3s ease'
               }}
               title={`${animationsEnabled ? 'Disable' : 'Enable'} matrix animations`}
+              aria-label={`${animationsEnabled ? 'Disable' : 'Enable'} matrix animations`}
             >
               <span style={{ 
-                fontSize: '0.75rem', 
+                 fontSize: '0.75rem', 
                 fontFamily: 'monospace',
                 color: '#76b900'
               }}>
-                MATRIX
+                FX
               </span>
               <div style={{
                 width: '12px',
@@ -125,6 +129,7 @@ export default function Navigation() {
                 border: 'none',
                 cursor: 'pointer'
               }}
+              aria-label="Toggle mobile navigation"
               className="mobile-menu-btn"
             >
               <span style={{

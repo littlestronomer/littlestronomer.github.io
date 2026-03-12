@@ -1,169 +1,207 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
+const highlights = [
+  '3.7TB+ audio pipeline',
+  '2x-4x faster than real time',
+  'Merged open-source contributions',
+];
+
+const titles = ['AI Engineer', 'ML Systems Researcher', 'CUDA Developer'];
+
+const focusAreas = [
+  'Low-latency speech and multimodal systems',
+  'CUDA, TensorRT, and inference optimization',
+  'Research-minded product engineering',
+];
+
 export default function Hero() {
   const [text, setText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [subtitle, setSubtitle] = useState('');
   const [isSelecting, setIsSelecting] = useState(false);
-  
-  const firstName = "Göktürk Batın";
-  const lastName = "Dervişoğlu";
+
+  const firstName = 'Göktürk Batın';
+  const lastName = 'Dervişoğlu';
   const fullText = `${firstName}\n${lastName}`;
-  
-  const titles = ["AI Engineer", "ML Researcher", "CUDA Developer"];
-  
+
   useEffect(() => {
     let index = 0;
-    const typeInterval = setInterval(() => {
+    const typeInterval = window.setInterval(() => {
       if (index <= fullText.length) {
         setText(fullText.slice(0, index));
-        index++;
-      } else {
-        clearInterval(typeInterval);
-        // Hide cursor after typing is done
-        setTimeout(() => setIsTypingComplete(true), 500);
+        index += 1;
+        return;
       }
-    }, 100);
 
-    // Cursor blinking while typing
-    const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev);
+      window.clearInterval(typeInterval);
+      window.setTimeout(() => setIsTypingComplete(true), 500);
+    }, 90);
+
+    const cursorInterval = window.setInterval(() => {
+      setShowCursor((previous) => !previous);
     }, 500);
 
     return () => {
-      clearInterval(typeInterval);
-      clearInterval(cursorInterval);
+      window.clearInterval(typeInterval);
+      window.clearInterval(cursorInterval);
     };
-  }, []);
+  }, [fullText]);
 
-  // Subtitle cycling effect
   useEffect(() => {
-    const startDelay = 3000; // Wait for name to finish typing
+    const startDelay = 2800;
     let titleIndex = 0;
-    
+    let typeTitleId = 0;
+    let pauseTimeoutId = 0;
+    let loopTimeoutId = 0;
+
     const cycleSubtitle = () => {
       const currentTitle = titles[titleIndex];
       let charIndex = 0;
-      
-      // Type out the current title
-      const typeTitle = setInterval(() => {
+
+      typeTitleId = window.setInterval(() => {
         if (charIndex <= currentTitle.length) {
           setSubtitle(currentTitle.slice(0, charIndex));
           setIsSelecting(false);
-          charIndex++;
-        } else {
-          clearInterval(typeTitle);
-          
-          // Wait, then "select" the text
-          setTimeout(() => {
-            setIsSelecting(true);
-            
-            // After selection effect, move to next title
-            setTimeout(() => {
-              titleIndex = (titleIndex + 1) % titles.length;
-              cycleSubtitle();
-            }, 300);
-          }, 2000);
+          charIndex += 1;
+          return;
         }
-      }, 80);
+
+        window.clearInterval(typeTitleId);
+        pauseTimeoutId = window.setTimeout(() => {
+          setIsSelecting(true);
+
+          loopTimeoutId = window.setTimeout(() => {
+            titleIndex = (titleIndex + 1) % titles.length;
+            cycleSubtitle();
+          }, 280);
+        }, 1900);
+      }, 70);
     };
-    
-    const timeout = setTimeout(() => {
+
+    const startTimeoutId = window.setTimeout(() => {
       cycleSubtitle();
     }, startDelay);
-    
-    return () => clearTimeout(timeout);
+
+    return () => {
+      window.clearTimeout(startTimeoutId);
+      window.clearTimeout(pauseTimeoutId);
+      window.clearTimeout(loopTimeoutId);
+      window.clearInterval(typeTitleId);
+    };
   }, []);
 
   return (
-    <section id="home" className="section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', paddingTop: '80px' }}>
+    <section id="home" className="section hero-section">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          style={{ textAlign: 'center' }}
-        >
-          <h1 style={{ 
-            fontSize: 'clamp(2.5rem, 8vw, 5rem)', 
-            fontWeight: 'bold', 
-            marginBottom: '1.5rem', 
-            color: '#76b900',
-            minHeight: '2.4em',
-            whiteSpace: 'pre-line',
-            lineHeight: '1.2',
-            position: 'relative',
-            display: 'inline-block'
-          }}>
-            {text}
-            {!isTypingComplete && (
-              <span style={{ 
-                display: 'inline-block',
-                width: '0.05em',
-                height: '1.1em',
-                backgroundColor: '#a0e426',
-                opacity: showCursor ? 0.8 : 0,
-                transition: 'opacity 0.1s',
-                marginLeft: '2px',
-                verticalAlign: 'text-bottom'
-              }}></span>
-            )}
-          </h1>
-          
+        <div className="hero-grid">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 3, duration: 0.5 }}
-            style={{ 
-              fontSize: 'clamp(1.25rem, 3vw, 2rem)', 
-              marginBottom: '1.5rem', 
-              color: '#a0e426',
-              minHeight: '1.5em',
-              position: 'relative'
-            }}
-          >
-            <span style={{
-              backgroundColor: isSelecting ? '#a0e426' : 'transparent',
-              color: isSelecting ? '#0a0a0a' : '#a0e426',
-              padding: isSelecting ? '2px 4px' : '0',
-              borderRadius: '2px',
-              transition: 'all 0.15s ease-in-out'
-            }}>
-              {subtitle}
-            </span>
-            <span style={{ 
-              color: '#76b900',
-              opacity: subtitle ? 1 : 0,
-              animation: 'blink 1s infinite'
-            }}>|</span>
-          </motion.div>
-          
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 3.5, duration: 0.5 }}
-            style={{ fontSize: '1.125rem', marginBottom: '3rem', maxWidth: '600px', margin: '0 auto 3rem', color: '#b0b0b0' }}
-          >
-            Creating cutting-edge AI solutions with a focus on 
-            performance optimization and parallel computing.
-          </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 4, duration: 0.5 }}
-            style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}
+            transition={{ duration: 0.6 }}
+            className="hero-copy-block"
           >
-            <a href="#projects" className="btn btn-primary">
-              View My Work
-            </a>
-            <a href="#contact" className="btn btn-secondary">
-              Get In Touch
-            </a>
+            <span className="hero-eyebrow">Istanbul x Waterloo | AI systems | CUDA-first engineering</span>
+
+            <h1 className="hero-title">
+              {text}
+              {!isTypingComplete && (
+                <span
+                  className="hero-cursor"
+                  style={{ opacity: showCursor ? 0.8 : 0 }}
+                  aria-hidden="true"
+                />
+              )}
+            </h1>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2.8, duration: 0.5 }}
+              className="hero-rotating-title"
+            >
+              <span
+                className={`hero-rotating-title-text${isSelecting ? ' is-selected' : ''}`}
+              >
+                {subtitle}
+              </span>
+              <span className="hero-rotating-cursor">|</span>
+            </motion.div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 3.2, duration: 0.5 }}
+              className="hero-description"
+            >
+              I build low-latency AI systems that feel immediate, from speech pipelines and
+              CUDA-accelerated inference to multimodal tools that turn research into usable
+              products.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 3.4, duration: 0.45 }}
+              className="hero-highlight-row"
+            >
+              {highlights.map((highlight) => (
+                <span key={highlight} className="hero-highlight-pill">
+                  {highlight}
+                </span>
+              ))}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 3.8, duration: 0.5 }}
+              className="hero-actions"
+            >
+              <a href="#projects" className="btn btn-primary">
+                Explore GitHub Work
+              </a>
+              <a href="/Awesome_CV.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+                Open Resume
+              </a>
+            </motion.div>
           </motion.div>
-        </motion.div>
+
+          <motion.aside
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 3.5, duration: 0.55 }}
+            className="hero-panel card"
+          >
+            <p className="panel-label">Current Focus</p>
+            <h2 className="panel-title">Latency, throughput, and research that survives contact with production.</h2>
+            <p className="panel-copy">
+              I care about the full stack of modern AI systems: model behavior, kernel-level
+              performance, developer ergonomics, and user-facing responsiveness.
+            </p>
+
+            <div className="hero-focus-list">
+              {focusAreas.map((area) => (
+                <div key={area} className="hero-focus-item">
+                  <span className="hero-focus-dot" />
+                  <span>{area}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="hero-panel-footer">
+              <div>
+                <span className="panel-foot-label">Best fit</span>
+                <strong>ML systems, GPU optimization, speech/audio, multimodal tooling</strong>
+              </div>
+              <div>
+                <span className="panel-foot-label">Open to</span>
+                <strong>Research collaborations, internships, and ambitious engineering teams</strong>
+              </div>
+            </div>
+          </motion.aside>
+        </div>
       </div>
     </section>
   );
