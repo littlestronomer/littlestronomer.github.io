@@ -4,27 +4,13 @@ import { useEffect, useState } from 'react';
 const titles = [
   'AI Engineer / ML Systems Researcher',
   'CUDA Developer / Inference Optimizer',
-  'Builder of fast speech and multimodal tools',
+  'Generative AI Architectures / Diffusion / Flows / AR',
 ];
 
 const highlightCards = [
   { label: 'Current track', value: 'MLSys x NVIDIA' },
   { label: 'Current target', value: 'Gated DeltaNet' },
-  { label: 'Bias', value: 'Latency over fluff' },
-];
-
-const consoleRows = [
-  { key: 'mode', value: 'active optimization' },
-  { key: 'focus', value: 'decode + prefill stages' },
-  { key: 'style', value: 'kernel-aware systems thinking' },
-  { key: 'next', value: 'public repo soon' },
-];
-
-const consoleTrace = [
-  'inspect hot path',
-  'reduce prefill drag',
-  'tighten decode loop',
-  'ship the clean version',
+  { label: 'Depth', value: 'Diffusion / Flows / AR' },
 ];
 
 export default function Hero() {
@@ -32,7 +18,7 @@ export default function Hero() {
   const [showCursor, setShowCursor] = useState(true);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [subtitle, setSubtitle] = useState('');
-  const [selectedCharacters, setSelectedCharacters] = useState(0);
+  const [isSelected, setIsSelected] = useState(false);
 
   const firstName = 'Göktürk Batın';
   const lastName = 'Dervişoğlu';
@@ -65,44 +51,34 @@ export default function Hero() {
     const startDelay = 2200;
     let titleIndex = 0;
     let charIndex = 0;
-    let selectionIndex = 0;
     let timeoutId = 0;
 
     const typeSubtitle = () => {
       const currentTitle = titles[titleIndex];
       if (charIndex <= currentTitle.length) {
         setSubtitle(currentTitle.slice(0, charIndex));
-        setSelectedCharacters(0);
+        setIsSelected(false);
         charIndex += 1;
         timeoutId = window.setTimeout(typeSubtitle, 44);
         return;
       }
 
-      timeoutId = window.setTimeout(selectSubtitle, 1050);
+      timeoutId = window.setTimeout(() => {
+        setIsSelected(true);
+
+        timeoutId = window.setTimeout(() => {
+          setSubtitle('');
+          setIsSelected(false);
+          charIndex = 0;
+          titleIndex = (titleIndex + 1) % titles.length;
+          timeoutId = window.setTimeout(typeSubtitle, 160);
+        }, 140);
+      }, 1150);
     };
 
     const startTimeoutId = window.setTimeout(() => {
       typeSubtitle();
     }, startDelay);
-
-    const selectSubtitle = () => {
-      const currentTitle = titles[titleIndex];
-      if (selectionIndex <= currentTitle.length) {
-        setSelectedCharacters(selectionIndex);
-        selectionIndex += 1;
-        timeoutId = window.setTimeout(selectSubtitle, 18);
-        return;
-      }
-
-      timeoutId = window.setTimeout(() => {
-        setSubtitle('');
-        setSelectedCharacters(0);
-        charIndex = 0;
-        selectionIndex = 0;
-        titleIndex = (titleIndex + 1) % titles.length;
-        timeoutId = window.setTimeout(typeSubtitle, 180);
-      }, 110);
-    };
 
     return () => {
       window.clearTimeout(startTimeoutId);
@@ -110,19 +86,10 @@ export default function Hero() {
     };
   }, []);
 
-  const selectedSubtitle = subtitle.slice(0, selectedCharacters);
-  const unselectedSubtitle = subtitle.slice(selectedCharacters);
-
   return (
     <section id="home" className="section hero-section">
       <div className="container">
         <div className="hero-shell">
-          <div className="hero-lighting" aria-hidden="true">
-            <span className="hero-light hero-light-primary" />
-            <span className="hero-light hero-light-secondary" />
-            <span className="hero-light hero-light-beam" />
-          </div>
-
           <motion.div
             initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -150,9 +117,8 @@ export default function Hero() {
               className="hero-subtitle-wrap"
             >
               <span className="hero-subtitle-prefix">gokturk@lab:~$</span>
-              <span className="hero-subtitle-line">
-                <span className="hero-subtitle-selected">{selectedSubtitle}</span>
-                <span className="hero-subtitle-plain">{unselectedSubtitle || (!selectedSubtitle ? '\u00A0' : '')}</span>
+              <span className={`hero-subtitle-line${isSelected ? ' is-selected' : ''}`}>
+                {subtitle || '\u00A0'}
               </span>
               <span className="hero-rotating-cursor">|</span>
             </motion.div>
@@ -163,9 +129,9 @@ export default function Hero() {
               transition={{ delay: 2.8, duration: 0.5 }}
               className="hero-description"
             >
-              I like the part of AI where ideas collide with hardware: CUDA, inference hot paths,
-              speech systems, multimodal tooling, and the small performance decisions that decide
-              whether something feels instant or unusable.
+              I care about the place where model design meets systems reality: generative AI
+              architectures, CUDA, inference hot paths, speech systems, and the performance
+              decisions that decide whether something feels immediate or slow.
             </motion.p>
 
             <motion.div
@@ -199,43 +165,6 @@ export default function Hero() {
               ))}
             </motion.div>
           </motion.div>
-
-          <motion.aside
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.9, duration: 0.55 }}
-            className="card hero-console"
-          >
-            <div className="console-head">
-              <div>
-                <p className="panel-label">Live Console</p>
-                <h2 className="console-title">Current work, current obsessions, current signal.</h2>
-              </div>
-              <div className="console-leds" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
-            </div>
-
-            <div className="console-grid">
-              {consoleRows.map((row) => (
-                <div key={row.key} className="console-row">
-                  <span className="console-key">{row.key}</span>
-                  <span className="console-value">{row.value}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="console-trace">
-              {consoleTrace.map((item, index) => (
-                <div key={item} className="console-trace-item">
-                  <span className="console-trace-index">0{index + 1}</span>
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </motion.aside>
         </div>
       </div>
     </section>

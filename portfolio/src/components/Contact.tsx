@@ -9,7 +9,7 @@ const contactLinks = [
 
 const fitAreas = [
   'ML systems and inference engineering',
-  'Speech, audio, and multimodal research prototypes',
+  'Speech, audio, and generative systems research',
   'GPU optimization and performance-focused product work',
 ];
 
@@ -48,7 +48,7 @@ export default function Contact() {
             <h2 className="section-title">Let&apos;s build something fast and meaningful</h2>
             <p className="section-subtitle">
               I am most excited by teams and collaborators working on ML systems, real-time AI,
-              speech or multimodal interfaces, and ambitious research-backed products.
+              speech systems, generative model research, and ambitious research-backed products.
             </p>
           </div>
 
