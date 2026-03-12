@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { formatRelativeDate, useGitHubPortfolioData } from '../lib/github';
 
 const titles = [
   'AI Engineer / ML Systems Researcher',
@@ -7,18 +8,16 @@ const titles = [
   'Generative AI Architectures / Diffusion / Flows / AR',
 ];
 
-const highlightCards = [
-  { label: 'Current track', value: 'MLSys x NVIDIA' },
-  { label: 'Current target', value: 'Gated DeltaNet' },
-  { label: 'Depth', value: 'Diffusion / Flows / AR' },
-];
+const activitySkeletons = Array.from({ length: 5 }, (_, index) => index);
 
 export default function Hero() {
+  const { data, isLoading } = useGitHubPortfolioData();
   const [text, setText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [subtitle, setSubtitle] = useState('');
   const [isSelected, setIsSelected] = useState(false);
+  const recentCommits = data?.recentCommits ?? [];
 
   const firstName = 'Göktürk Batın';
   const lastName = 'Dervişoğlu';
@@ -116,7 +115,6 @@ export default function Hero() {
               transition={{ delay: 2.5, duration: 0.45 }}
               className="hero-subtitle-wrap"
             >
-              <span className="hero-subtitle-prefix">gokturk@lab:~$</span>
               <span className={`hero-subtitle-line${isSelected ? ' is-selected' : ''}`}>
                 {subtitle || '\u00A0'}
               </span>
@@ -132,6 +130,17 @@ export default function Hero() {
               I care about the place where model design meets systems reality: generative AI
               architectures, CUDA, inference hot paths, speech systems, and the performance
               decisions that decide whether something feels immediate or slow.
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 2.95, duration: 0.45 }}
+              className="hero-context-note"
+            >
+              Currently at MLSys in the NVIDIA track, working on Gated DeltaNet decode and prefill
+              optimization while studying diffusion, flow matching, normalizing flows,
+              autoregressive models, autoencoders, and GANs.
             </motion.p>
 
             <motion.div
@@ -150,21 +159,58 @@ export default function Hero() {
                 Resume
               </a>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 3.25, duration: 0.5 }}
-              className="hero-meta-grid"
-            >
-              {highlightCards.map((card) => (
-                <div key={card.label} className="hero-meta-card">
-                  <span className="hero-meta-label">{card.label}</span>
-                  <strong className="hero-meta-value">{card.value}</strong>
-                </div>
-              ))}
-            </motion.div>
           </motion.div>
+
+          <motion.aside
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 3.05, duration: 0.5 }}
+            className="card hero-activity-card"
+          >
+            <p className="panel-label">Public Activity</p>
+            <h2 className="panel-title">Recent public commits</h2>
+            <p className="panel-copy hero-activity-copy">
+              This is pulled from your public repositories directly, so it reflects actual recent
+              work rather than GitHub&apos;s limited public events feed.
+            </p>
+
+            <div className="commit-log-list hero-activity-list">
+              {isLoading &&
+                activitySkeletons.map((item) => (
+                  <div key={item} className="commit-log-item skeleton-card">
+                    <div className="skeleton-line skeleton-line-short" />
+                    <div className="skeleton-line skeleton-line-title" />
+                  </div>
+                ))}
+
+              {!isLoading &&
+                recentCommits.map((commit) => (
+                  <a
+                    key={commit.sha}
+                    href={commit.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="commit-log-item"
+                  >
+                    <div className="commit-log-header">
+                      <span className="commit-log-repo">{commit.repoName}</span>
+                      <span className="commit-log-time">{formatRelativeDate(commit.createdAt)}</span>
+                    </div>
+                    <div className="commit-log-message-row">
+                      <span className="commit-sha">{commit.shortSha}</span>
+                      <span className="commit-message">{commit.message}</span>
+                    </div>
+                  </a>
+                ))}
+            </div>
+
+            {!isLoading && recentCommits.length === 0 && (
+              <div className="github-empty-state compact-empty-state">
+                <h3>No recent public commits.</h3>
+                <p>As soon as public repo commits are available, they will appear here.</p>
+              </div>
+            )}
+          </motion.aside>
         </div>
       </div>
     </section>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 
 const GITHUB_USERNAME = 'littlestronomer';
-const CACHE_KEY = `portfolio-github-data:${GITHUB_USERNAME}`;
+const CACHE_KEY = `portfolio-github-data:v2:${GITHUB_USERNAME}`;
 const CACHE_TTL = 15 * 60 * 1000;
 const FEATURED_TOPICS = new Set(['featured', 'portfolio']);
+const RECENT_COMMIT_REPO_LIMIT = 8;
+const RECENT_COMMITS_PER_REPO = 8;
 
 interface GitHubProfileResponse {
   login: string;
@@ -35,20 +37,14 @@ interface GitHubRepoResponse {
   fork: boolean;
 }
 
-interface GitHubPushEventResponse {
-  id: string;
-  type: string;
-  repo: {
-    name: string;
-  };
-  created_at: string;
-  payload?: {
-    ref?: string;
-    size?: number;
-    commits?: Array<{
-      sha: string;
-      message: string;
-    }>;
+interface GitHubCommitResponse {
+  sha: string;
+  html_url: string;
+  commit: {
+    message: string;
+    author: {
+      date: string;
+    } | null;
   };
 }
 
@@ -79,28 +75,21 @@ export interface GitHubRepo {
   isFeatured: boolean;
 }
 
-export interface GitHubActivityCommit {
+export interface GitHubRecentCommit {
   sha: string;
   shortSha: string;
   message: string;
   url: string;
-}
-
-export interface GitHubActivityItem {
-  id: string;
   repoName: string;
   repoUrl: string;
-  branch: string;
   createdAt: string;
-  commitCount: number;
-  commits: GitHubActivityCommit[];
 }
 
 export interface GitHubPortfolioData {
   profile: GitHubProfile;
   featuredRepos: GitHubRepo[];
   allRepoCount: number;
-  recentActivity: GitHubActivityItem[];
+  recentCommits: GitHubRecentCommit[];
 }
 
 interface CachedGitHubPortfolioData {
@@ -195,30 +184,45 @@ function selectFeaturedRepos(repos: GitHubRepoResponse[]) {
   };
 }
 
-function toActivity(events: GitHubPushEventResponse[]) {
-  return events
-    .filter((event) => event.type === 'PushEvent' && (event.payload?.commits?.length ?? 0) > 0)
-    .slice(0, 4)
-    .map((event) => {
-      const repoUrl = `https://github.com/${event.repo.name}`;
-      const branch = event.payload?.ref?.replace('refs/heads/', '') ?? 'main';
-      const commits = (event.payload?.commits ?? []).slice(0, 3).map((commit) => ({
-        sha: commit.sha,
-        shortSha: commit.sha.slice(0, 7),
-        message: commit.message.split('\n')[0],
-        url: `${repoUrl}/commit/${commit.sha}`,
-      }));
+async function fetchRecentCommits(repos: GitHubRepoResponse[]) {
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-      return {
-        id: event.id,
-        repoName: event.repo.name.replace(`${GITHUB_USERNAME}/`, ''),
-        repoUrl,
-        branch,
-        createdAt: event.created_at,
-        commitCount: event.payload?.size ?? commits.length,
-        commits,
-      };
-    });
+  const trackedRepos = repos
+    .filter((repo) => !repo.private && !repo.archived && !repo.disabled)
+    .sort(
+      (left, right) => new Date(right.pushed_at).getTime() - new Date(left.pushed_at).getTime(),
+    )
+    .slice(0, RECENT_COMMIT_REPO_LIMIT);
+
+  const commitBatches = await Promise.all(
+    trackedRepos.map(async (repo) => {
+      try {
+        const commits = await fetchJson<GitHubCommitResponse[]>(
+          `/repos/${repo.full_name}/commits?author=${GITHUB_USERNAME}&per_page=${RECENT_COMMITS_PER_REPO}&since=${encodeURIComponent(oneYearAgo.toISOString())}`,
+        );
+
+        return commits.map((commit) => ({
+          sha: commit.sha,
+          shortSha: commit.sha.slice(0, 7),
+          message: commit.commit.message.split('\n')[0],
+          url: commit.html_url,
+          repoName: repo.name,
+          repoUrl: repo.html_url,
+          createdAt: commit.commit.author?.date ?? repo.pushed_at,
+        } satisfies GitHubRecentCommit));
+      } catch {
+        return [];
+      }
+    }),
+  );
+
+  return commitBatches
+    .flat()
+    .sort(
+      (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+    )
+    .slice(0, 8);
 }
 
 function readCache(maxAge = CACHE_TTL) {
@@ -281,19 +285,19 @@ async function fetchJson<T>(path: string): Promise<T> {
 }
 
 async function fetchGitHubPortfolioData() {
-  const [profileResponse, repoResponse, eventsResponse] = await Promise.all([
+  const [profileResponse, repoResponse] = await Promise.all([
     fetchJson<GitHubProfileResponse>(`/users/${GITHUB_USERNAME}`),
     fetchJson<GitHubRepoResponse[]>(`/users/${GITHUB_USERNAME}/repos?per_page=100&sort=updated`),
-    fetchJson<GitHubPushEventResponse[]>(`/users/${GITHUB_USERNAME}/events/public?per_page=30`),
   ]);
 
   const repoSelection = selectFeaturedRepos(repoResponse);
+  const recentCommits = await fetchRecentCommits(repoResponse);
 
   return {
     profile: toProfile(profileResponse),
     featuredRepos: repoSelection.featuredRepos,
     allRepoCount: repoSelection.allRepoCount,
-    recentActivity: toActivity(eventsResponse),
+    recentCommits,
   } satisfies GitHubPortfolioData;
 }
 

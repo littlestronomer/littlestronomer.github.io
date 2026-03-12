@@ -228,15 +228,15 @@
 
 .hero-shell {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.72fr);
   gap: 26px;
+  align-items: end;
 }
 
 .hero-main {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  max-width: 920px;
   min-height: calc(100vh - 230px);
 }
 
@@ -289,7 +289,7 @@
 }
 
 .hero-subtitle-wrap {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   width: fit-content;
@@ -304,21 +304,19 @@
 }
 
 .hero-subtitle-prefix {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
+  display: none;
 }
 
 .hero-subtitle-line {
-  display: inline-flex;
-  align-items: center;
-  min-width: min(100%, 34ch);
-  min-height: 2rem;
-  padding: 0.14rem 0.32rem;
+  display: inline-block;
+  min-width: min(100%, 30ch);
+  min-height: 1.5rem;
+  padding: 0.2rem 0.36rem;
   border-radius: 6px;
   color: var(--accent-cool);
   white-space: nowrap;
+  font-family: var(--font-body);
+  line-height: 1.2;
   transition: background-color 0.1s ease, color 0.1s ease;
 }
 
@@ -328,7 +326,10 @@
 }
 
 .hero-rotating-cursor {
+  display: inline-block;
   color: var(--accent);
+  line-height: 1;
+  transform: translateY(-1px);
   animation: blink 1s infinite;
 }
 
@@ -339,42 +340,32 @@
   font-size: 1rem;
 }
 
+.hero-context-note {
+  max-width: 66ch;
+  margin-bottom: 1.55rem;
+  color: var(--text-secondary);
+}
+
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;
-  margin-bottom: 1.7rem;
 }
 
-.hero-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  max-width: 760px;
+.hero-activity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  max-width: 360px;
+  justify-self: end;
 }
 
-.hero-meta-card {
-  min-height: 84px;
-  padding: 14px 16px;
-  border: 1px solid rgba(126, 214, 178, 0.14);
-  border-radius: 18px;
-  background: rgba(7, 16, 20, 0.52);
+.hero-activity-copy {
+  margin-bottom: 0.2rem;
 }
 
-.hero-meta-label {
-  display: block;
-  margin-bottom: 0.55rem;
-  color: var(--text-muted);
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.hero-meta-value {
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  line-height: 1.15;
+.hero-activity-list {
+  width: 100%;
 }
 
 .current-work-section {
@@ -590,9 +581,8 @@
 
 .projects-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
+  grid-template-columns: 1fr;
   gap: 24px;
-  align-items: start;
 }
 
 .projects-main-column {
@@ -700,16 +690,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;
-}
-
-.public-commit-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.95rem;
-}
-
-.public-commit-copy {
-  margin-bottom: 0.3rem;
 }
 
 .commit-log-list {
@@ -935,7 +915,6 @@
   .current-work-grid,
   .about-layout,
   .github-summary,
-  .projects-layout,
   .contact-layout {
     grid-template-columns: 1fr;
   }
@@ -943,10 +922,14 @@
   .hero-main {
     min-height: auto;
   }
+
+  .hero-activity-card {
+    max-width: none;
+    justify-self: stretch;
+  }
 }
 
 @media (max-width: 900px) {
-  .hero-meta-grid,
   .current-work-stage-grid,
   .about-highlight-grid,
   .github-stats-grid,
@@ -1000,7 +983,6 @@
     min-height: 2.3em;
   }
 
-  .hero-subtitle-wrap,
   .featured-repo-topline,
   .repo-card-head,
   .featured-repo-footer,
@@ -1009,9 +991,14 @@
     align-items: flex-start;
   }
 
+  .hero-subtitle-wrap {
+    width: 100%;
+  }
+
   .hero-subtitle-line {
     min-width: 0;
-    width: 100%;
+    width: auto;
+    white-space: normal;
   }
 
   .hero-actions,
