@@ -1,5 +1,5 @@
 import { motion, useInView } from 'framer-motion';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import {
   formatRelativeDate,
   formatShortDate,
@@ -25,8 +25,6 @@ const popAnimation = {
 };
 
 const repoSkeletons = Array.from({ length: 4 }, (_, index) => index);
-const commitSkeletons = Array.from({ length: 6 }, (_, index) => index);
-
 export default function Projects() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
@@ -37,21 +35,7 @@ export default function Projects() {
   const spotlightRepo = featuredRepos[0];
   const supportingRepos = featuredRepos.slice(1, 5);
   const profileUrl = profile?.url ?? 'https://github.com/littlestronomer';
-
-  const recentCommits = useMemo(
-    () =>
-      (data?.recentActivity ?? [])
-        .flatMap((event) =>
-          event.commits.map((commit) => ({
-            ...commit,
-            repoName: event.repoName,
-            repoUrl: event.repoUrl,
-            createdAt: event.createdAt,
-          })),
-        )
-        .slice(0, 6),
-    [data],
-  );
+  const recentCommits = data?.recentCommits ?? [];
 
   return (
     <section id="projects" className="section" ref={ref}>
@@ -63,11 +47,10 @@ export default function Projects() {
         >
           <div className="section-heading">
             <span className="section-kicker">Public GitHub Surface</span>
-            <h2 className="section-title">Open repositories first, public commit pulse second</h2>
+            <h2 className="section-title">Selected public repositories</h2>
             <p className="section-subtitle">
-              The site now treats GitHub like a live surface: public repositories are the proof,
-              recent commits are the background signal, and private work can stay private until it
-              is ready to be shown properly.
+              The public repo list stays curated here, while recent commit activity now lives next
+              to the hero so visitors immediately see that the work is active.
             </p>
           </div>
 
@@ -77,8 +60,8 @@ export default function Projects() {
               <h3 className="panel-title">Public repos are the main portfolio layer.</h3>
               <p className="panel-copy">
                 Add the topics `featured` or `portfolio` on GitHub to pin repositories here. Until
-                the MLSys work goes public, the portfolio highlights the best public repos and keeps
-                the commit log visible but secondary.
+                the MLSys work goes public, the portfolio highlights the best public repos while the
+                recent public commit stream stays visible in the hero.
               </p>
             </div>
 
@@ -220,52 +203,6 @@ export default function Projects() {
                 </a>
               </div>
             </div>
-
-            <aside className="card public-commit-card">
-              <p className="panel-label">Public Commit Log</p>
-              <h3 className="panel-title">Latest public commits</h3>
-              <p className="panel-copy public-commit-copy">
-                Activity matters, but it stays secondary to the repositories themselves. This feed
-                is intentionally lightweight.
-              </p>
-
-              <div className="commit-log-list">
-                {isLoading &&
-                  commitSkeletons.map((item) => (
-                    <div key={item} className="commit-log-item skeleton-card">
-                      <div className="skeleton-line skeleton-line-short" />
-                      <div className="skeleton-line skeleton-line-title" />
-                    </div>
-                  ))}
-
-                {!isLoading &&
-                  recentCommits.map((commit) => (
-                    <a
-                      key={commit.sha}
-                      href={commit.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="commit-log-item"
-                    >
-                      <div className="commit-log-header">
-                        <span className="commit-log-repo">{commit.repoName}</span>
-                        <span className="commit-log-time">{formatRelativeDate(commit.createdAt)}</span>
-                      </div>
-                      <div className="commit-log-message-row">
-                        <span className="commit-sha">{commit.shortSha}</span>
-                        <span className="commit-message">{commit.message}</span>
-                      </div>
-                    </a>
-                  ))}
-              </div>
-
-              {!isLoading && recentCommits.length === 0 && (
-                <div className="github-empty-state compact-empty-state">
-                  <h3>No recent public commits.</h3>
-                  <p>As soon as new pushes land on public repositories, they will appear here.</p>
-                </div>
-              )}
-            </aside>
           </div>
 
           {error && !data && (
