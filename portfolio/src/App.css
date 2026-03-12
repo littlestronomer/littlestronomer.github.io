@@ -230,14 +230,15 @@
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.72fr);
   gap: 26px;
-  align-items: end;
+  align-items: start;
 }
 
 .hero-main {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  min-height: calc(100vh - 230px);
+  justify-content: flex-start;
+  min-height: 0;
+  padding-top: 0.25rem;
 }
 
 .hero-badge {
