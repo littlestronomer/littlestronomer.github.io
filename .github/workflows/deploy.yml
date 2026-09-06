@@ -35,6 +35,12 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: ./portfolio
+
+      - name: Add celebration page
+        run: |
+          mkdir -p dist/celebration
+          cp portfolio/public/celebration/index.html dist/celebration/index.html
+          touch dist/.nojekyll
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
