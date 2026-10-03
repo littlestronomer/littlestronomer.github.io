@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://littlestronomer.github.io/sitemap.xml

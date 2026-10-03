@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 160 100">
+  <!-- A paper boat seen from a little above, lit from the upper left like the painting.
+       The waterline is at y = 86 (14% up from the bottom); below it is the part that
+       sits in the water, which the shader shows faintly through the water. -->
+  <defs>
+    <linearGradient id="inside" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6ecf2" />
+      <stop offset="0.55" stop-color="#bccad9" />
+      <stop offset="1" stop-color="#97aac0" />
+    </linearGradient>
+    <linearGradient id="sail-lit" x1="0.2" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#fffefa" />
+      <stop offset="0.7" stop-color="#f4f6f8" />
+      <stop offset="1" stop-color="#e3e9f0" />
+    </linearGradient>
+    <linearGradient id="sail-shade" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#dce4ed" />
+      <stop offset="1" stop-color="#b6c5d6" />
+    </linearGradient>
+    <linearGradient id="bow" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#fffdf8" />
+      <stop offset="1" stop-color="#e2e9f0" />
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbfbfa" />
+      <stop offset="0.5" stop-color="#e7ecf1" />
+      <stop offset="1" stop-color="#c4d0dd" />
+    </linearGradient>
+    <linearGradient id="stern" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#d3dce6" />
+      <stop offset="1" stop-color="#a7b8cb" />
+    </linearGradient>
+    <linearGradient id="hull-under" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9c7d6" />
+      <stop offset="1" stop-color="#93a7bd" />
+    </linearGradient>
+    <linearGradient id="wet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5d86b5" stop-opacity="0" />
+      <stop offset="1" stop-color="#3f6fa6" stop-opacity="0.4" />
+    </linearGradient>
+    <filter id="paper" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="grain" />
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.48  0 0 0 0 0.56  0 0 0 0.1 0" result="tint" />
+      <feComposite in="tint" in2="SourceAlpha" operator="in" result="grainInside" />
+      <feBlend in="SourceGraphic" in2="grainInside" mode="multiply" />
+    </filter>
+  </defs>
+  <g filter="url(#paper)">
+    <polygon points="36,86 124,86 116,98 44,98" fill="url(#hull-under)" />
+    <polygon points="8,46 58,54 102,54 152,46 102,62 58,62" fill="url(#inside)" />
+    <polygon points="80,58 100,58 112,57 102,61" fill="#7f93ab" fill-opacity="0.35" />
+    <polygon points="80,6 60,58 80,58" fill="url(#sail-lit)" />
+    <polygon points="80,6 80,58 100,58" fill="url(#sail-shade)" />
+    <polygon points="8,46 58,62 36,86" fill="url(#bow)" />
+    <polygon points="58,62 102,62 124,86 36,86" fill="url(#side)" />
+    <polygon points="102,62 152,46 124,86" fill="url(#stern)" />
+    <!-- Each fold is a dark valley with a lit ridge beside it. -->
+    <path d="M80.2 7 80.2 58 M58.4 62.4 36.6 86 M102 62.4 124 86 M52.6 68.6 107.4 68.6" fill="none" stroke="#5a6f8c" stroke-opacity="0.38" stroke-width="0.7" />
+    <path d="M79.3 8 79.3 57.5 M57.4 63 35.6 85.6 M53 67.6 107 67.6" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="0.6" />
+    <!-- Paper edges catch the light along the top. -->
+    <path d="M8 46 58 62 102 62 152 46 M80 6 60 58" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="0.8" stroke-linejoin="round" />
+    <path d="M80 6 100 58 M152 46 124 86" fill="none" stroke="#6f84a1" stroke-opacity="0.35" stroke-width="0.6" />
+    <!-- Wet paper darkens toward the water. -->
+    <path d="M33 80 127 80 124 86 36 86Z" fill="url(#wet)" />
+  </g>
+</svg>
