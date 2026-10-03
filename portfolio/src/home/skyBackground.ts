@@ -24,6 +24,8 @@ const DRIFT = 0.3
 const PIXELS_PER_DEGREE = { wide: 5.2, narrow: 3.6 }
 /** How close the cursor must come to a line, in sky pixels, to light it. */
 const REACH = 7
+/** Anywhere inside a constellation's outline lights it too, and this far outside it. */
+const OUTLINE_REACH = 3
 /** Room around a constellation for its stars' arms and its lines' halo. */
 const MARGIN = 5
 const GLOW_IN_MS = 140
@@ -54,6 +56,8 @@ type Figure = {
   paths: [number, number][][]
   /** The same lines as end points, for measuring how close the cursor is. */
   segments: [ChartStar, ChartStar][]
+  /** The corners of the space the constellation takes up, in order around it. */
+  outline: Point[]
   box: Box
   label: Point
   /** Everything that can light up, with room to spare: the stars, the lines and the name. */
@@ -135,6 +139,36 @@ function chartNorth(charts: Constellation[], centerX: number, centerY: number, p
   )
 }
 
+/**
+ * The outline of a group of points: the corners of the smallest shape without dents that holds
+ * them all, in order around it.
+ */
+function outlineOf(points: Point[]) {
+  const sorted = [...points].sort((a, b) => a.x - b.x || a.y - b.y)
+  const bends = (o: Point, a: Point, b: Point) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+  /** One side of the outline, walked from end to end, dropping every point that would dent it. */
+  const side = (walk: Point[]) => {
+    const kept: Point[] = []
+    for (const point of walk) {
+      while (kept.length >= 2 && bends(kept[kept.length - 2], kept[kept.length - 1], point) <= 0) kept.pop()
+      kept.push(point)
+    }
+    return kept.slice(0, -1)
+  }
+  return [...side(sorted), ...side(sorted.reverse())]
+}
+
+/** Whether a point is inside an outline, or no more than `reach` outside it. */
+function insideOutline(outline: Point[], x: number, y: number, reach: number) {
+  // Stars in a row enclose no space at all.
+  if (outline.length < 3) return false
+  return outline.every((a, i) => {
+    const b = outline[(i + 1) % outline.length]
+    const along = Math.hypot(b.x - a.x, b.y - a.y)
+    return ((b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x)) / along >= -reach
+  })
+}
+
 /** Turns a constellation and the places of its stars into lines, a name and a frame. */
 function figureFrom(chart: Constellation, points: Point[], width: number): Figure {
   const stars = chart.stars.map((star, i) => ({
@@ -172,6 +206,7 @@ function figureFrom(chart: Constellation, points: Point[], width: number): Figur
     stars,
     paths,
     segments,
+    outline: outlineOf(stars),
     box,
     label,
     frame,
@@ -513,23 +548,25 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
     whisper.style.transform = `translate(${Math.max(8, x)}px, ${Math.max(8, y)}px)`
   }
 
-  /** Lights the constellation whose lines the cursor is on, and lets the others go dark. */
+  /** Lights the constellation the cursor is on, and lets the others go dark. */
   const touch = () => {
     let nearest: Figure | null = null
     if (pointer) {
       const x = pointer.x / SCALE
       const y = (pointer.y + slid) / SCALE
       // A finger is less exact than a mouse, so it reaches a little farther.
-      let best = pointer.mouse ? REACH : REACH * 1.6
+      const reach = pointer.mouse ? REACH : REACH * 1.6
+      let best = Infinity
       for (const figure of figures) {
         const { box } = figure
-        if (x < box.left - best || x > box.right + best || y < box.top - best || y > box.bottom + best) continue
-        for (const segment of figure.segments) {
-          const distance = distanceToSegment(x, y, segment)
-          if (distance < best) {
-            best = distance
-            nearest = figure
-          }
+        if (x < box.left - reach || x > box.right + reach || y < box.top - reach || y > box.bottom + reach) continue
+        let distance = Math.min(...figure.segments.map((segment) => distanceToSegment(x, y, segment)))
+        // The space between its lines belongs to the constellation too, so the cursor can rest
+        // anywhere inside it. A line right under the cursor still counts for more.
+        if (distance >= reach) distance = insideOutline(figure.outline, x, y, OUTLINE_REACH) ? reach : Infinity
+        if (distance < best) {
+          best = distance
+          nearest = figure
         }
       }
     }

@@ -31,7 +31,7 @@ export const CONSTELLATIONS: Constellation[] = [
     name: 'CASSIOPEIA',
     lane: 'north',
     down: 1,
-    whisper: 'How I would look for her',
+    whisper: 'How I would see her',
     stars: [
       { ra: 2.295, dec: 59.15, size: 1 }, // Caph
       { ra: 10.127, dec: 56.537, size: 1, look: 'gold' }, // Schedar
