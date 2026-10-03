@@ -1,7 +1,33 @@
+import type { ReactNode } from 'react'
 import TeaGlass from './TeaGlass'
 
 // What the page says in the Turkish theme. No engineering here: food, tea, customs, words and
 // memes, and a little about where I am from.
+
+/** A small pixel picture from public/images/turk, drawn by scripts/make_pixel_assets.py. */
+function Picture({ of }: { of: string }) {
+  return <img className="turk-picture" src={`/images/turk/${of}.png`} width={48} height={48} alt="" loading="lazy" />
+}
+
+type PicturedProps = {
+  /** Which picture stands beside the words. */
+  picture: string
+  title: string
+  children: ReactNode
+}
+
+/** One dish or custom: its picture, its name and a few words about it. */
+function Pictured({ picture, title, children }: PicturedProps) {
+  return (
+    <div className="turk-item">
+      <Picture of={picture} />
+      <div>
+        <h3>{title}</h3>
+        <p>{children}</p>
+      </div>
+    </div>
+  )
+}
 
 type TurkHelloProps = {
   /** Puts the site back in its night colors, with the engineering. */
@@ -42,96 +68,94 @@ export function TurkNotes() {
     <>
       <article className="note" id="turk-sofra" tabIndex={-1} aria-labelledby="turk-sofra-title">
         <h2 id="turk-sofra-title">Sofra: the table</h2>
-        <h3>Kahvaltı</h3>
-        <p>
+        <Pictured picture="simit" title="Kahvaltı">
           Breakfast. The word means &quot;before coffee&quot;, and it is less a meal than an event:
           cheeses, olives, tomatoes, cucumbers, eggs, honey with clotted cream (kaymak), sesame
           rings (simit) and tea without end.
-        </p>
-        <h3>Kuymak</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="kuymak" title="Kuymak">
           From my side of the country, the Black Sea: cornmeal cooked in butter with a stringy
           mountain cheese, eaten hot from the pan with bread. Also called muhlama.
-        </p>
-        <h3>Hamsi</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="hamsi" title="Hamsi">
           The Black Sea anchovy, and in Trabzon close to a religion. Fried in cornmeal, baked into
           rice, even put in bread.
-        </p>
-        <h3>Akçaabat köftesi</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="kofte" title="Akçaabat köftesi">
           Grilled meatballs from Akçaabat, the town next to Trabzon. The name is protected, like a
           wine region&apos;s.
-        </p>
-        <h3>Kebap</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="doner" title="Kebap">
           A family, not a dish. Döner turns on its spit; İskender, from Bursa, lays it over bread
           with tomato sauce and browned butter; Adana is minced by hand and hot.
-        </p>
-        <h3>Mantı</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="manti" title="Mantı">
           Tiny dumplings under garlic yogurt and butter with red pepper. In Kayseri they say forty
           should fit on one spoon.
-        </p>
-        <h3>Lahmacun and pide</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="lahmacun" title="Lahmacun and pide">
           Lahmacun is a thin round of dough with spiced minced meat, rolled up with parsley and
           lemon. Pide is its thicker, boat-shaped cousin.
-        </p>
-        <h3>Baklava and künefe</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="baklava" title="Baklava and künefe">
           Baklava is paper-thin layers with pistachio, at its best in Gaziantep. Künefe, from
           Hatay, is shredded pastry over melted cheese, served hot. Both swim in syrup.
-        </p>
-        <h3>Kuru fasulye</h3>
-        <p>White beans and rice. Plain, cheap, and loved enough to be called the national dish.</p>
+        </Pictured>
+        <Pictured picture="fasulye" title="Kuru fasulye">
+          White beans and rice. Plain, cheap, and loved enough to be called the national dish.
+        </Pictured>
       </article>
 
       <article className="note" id="turk-cay" tabIndex={-1} aria-labelledby="turk-cay-title">
         <h2 id="turk-cay-title">Çay: tea</h2>
-        <p>
-          Tea grows on the hills of Rize, an hour east of Trabzon, and is drunk everywhere, all
-          day. It is brewed strong in the top of a two-storey pot (çaydanlık), poured into a small
-          tulip-shaped glass and thinned with hot water from the pot below. By most counts no
-          country drinks more tea per person.
-        </p>
-        <p>
-          The glass has no handle, so you hold it by the rim. A good glass has the color of
-          rabbit&apos;s blood (tavşan kanı), and nobody asks whether you want one.
-        </p>
+        <div className="turk-item">
+          <Picture of="caydanlik" />
+          <div>
+            <p>
+              Tea grows on the hills of Rize, an hour east of Trabzon, and is drunk everywhere, all
+              day. It is brewed strong in the top of a two-storey pot (çaydanlık), poured into a
+              small tulip-shaped glass and thinned with hot water from the pot below. By most
+              counts no country drinks more tea per person.
+            </p>
+            <p>
+              The glass has no handle, so you hold it by the rim. A good glass has the color of
+              rabbit&apos;s blood (tavşan kanı), and nobody asks whether you want one.
+            </p>
+          </div>
+        </div>
       </article>
 
-      <article className="note" id="turk-culture" tabIndex={-1} aria-labelledby="turk-culture-title">
+      <article className="note has-cat" id="turk-culture" tabIndex={-1} aria-labelledby="turk-culture-title">
         <h2 id="turk-culture-title">How things are done</h2>
-        <h3>The guest</h3>
-        <p>
+        <Pictured picture="guest" title="The guest">
           A guest is &quot;a guest from God&quot; (Tanrı misafiri). You will be fed, and then fed
           again.
-        </p>
-        <h3>Nazar boncuğu</h3>
-        <p>The blue glass eye on doors, cars and babies&apos; clothes. It stares back at the evil eye.</p>
-        <h3>Coffee and fortunes</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="nazar" title="Nazar boncuğu">
+          The blue glass eye on doors, cars and babies&apos; clothes. It stares back at the evil eye.
+        </Pictured>
+        <Pictured picture="kahve" title="Coffee and fortunes">
           Turkish coffee is boiled in a small pot (cezve) and served with its grounds. When the cup
           is empty it is turned upside down, and a friend reads your fortune in what is left.
-        </p>
-        <h3>Kolonya</h3>
-        <p>Lemon cologne, poured into your hands when you arrive, after dinner, and on every long bus ride.</p>
-        <h3>Horon</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="kolonya" title="Kolonya">
+          Lemon cologne, poured into your hands when you arrive, after dinner, and on every long bus
+          ride.
+        </Pictured>
+        <Pictured picture="kemence" title="Horon">
           The dance of the Black Sea: a fast line dance with shaking shoulders, to the kemençe, a
           small three-stringed fiddle.
-        </p>
-        <h3>Tavla</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="tavla" title="Tavla">
           Backgammon, played fast and loud in tea houses. The dice are still called by their
           Persian names.
-        </p>
-        <h3>Cats</h3>
-        <p>
+        </Pictured>
+        <Pictured picture="cat" title="Cats">
           Street cats belong to everyone. Shops put out water and food, and a cat asleep on your
           chair has the right of way.
-        </p>
+        </Pictured>
+        {/* One of them, asleep on top of this box. */}
+        <span className="sleeping-cat" aria-hidden="true" />
       </article>
 
       <article className="note" id="turk-memes" tabIndex={-1} aria-labelledby="turk-memes-title">
@@ -141,7 +165,7 @@ export function TurkNotes() {
           Three crescents, an old Ottoman emblem. Online it goes on both sides of anything Turkish,
           half pride and half joke.
         </p>
-        <h3>TURKISH MENTIONED</h3>
+        <h3>TURKEY MENTIONED</h3>
         <p>
           The reply posted whenever Turkey turns up anywhere at all: a film, a map, a recipe, a
           footnote. This page did it to itself.

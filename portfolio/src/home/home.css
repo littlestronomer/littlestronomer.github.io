@@ -754,10 +754,25 @@ a:hover {
   translate: 2px 2px;
 }
 
-/* The battle map, which takes the network's place in the Turkish theme. The line that tells
-   what is happening keeps room for five lines, so the box does not jump as it changes. */
+/* The battle map, which takes the network's place in the Turkish theme. Each part of the box
+   that changes with the battle (its name, its caption, the two sides, its story) is laid out
+   for every battle at once, all in the same place with one showing. That place is as tall as
+   the tallest, so the box keeps one size and nothing below it on the page ever jumps. */
+.same-room {
+  display: grid;
+}
+
+.same-room > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+  visibility: hidden;
+}
+
+.same-room > .is-shown {
+  visibility: visible;
+}
+
 .battle-phase {
-  min-height: 7.5em;
   margin: 0 0 12px;
   font-size: 0.97rem;
   line-height: 1.5;
@@ -906,6 +921,70 @@ a:hover {
 
 .tea-box .pixel-action {
   margin: 2px 3px 3px;
+}
+
+/* In the Turkish theme every dish and custom has a small pixel picture beside it, set in a
+   frame like a slot in a game's inventory. The picture stands in for the heading's bullet. */
+.turk-item {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 1.4rem;
+}
+
+.note h2 + .turk-item {
+  margin-top: 0;
+}
+
+.turk-picture {
+  width: 60px;
+  height: 60px;
+  padding: 6px;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+  image-rendering: pixelated;
+}
+
+.turk-item h3 {
+  margin-top: 0;
+}
+
+.turk-item h3::before {
+  content: none;
+}
+
+.turk-item p:last-child {
+  margin-bottom: 0;
+}
+
+/* A street cat asleep on top of a box, breathing slowly. Its two pictures lie side by side in
+   one image, and the breath shows first one and then the other. */
+.note.has-cat {
+  position: relative;
+}
+
+.sleeping-cat {
+  position: absolute;
+  right: 30px;
+  bottom: calc(100% + var(--px));
+  width: 72px;
+  height: 48px;
+  background: url('/images/turk/sleeping-cat.png') 0 0 / 200% 100% no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sleeping-cat {
+    animation: cat-breath 3.4s steps(1) infinite;
+  }
+}
+
+@keyframes cat-breath {
+  50% {
+    background-position: 100% 0;
+  }
 }
 
 /* Lists in the Turkish theme: phrases with their meanings, and plain facts with a crescent. */

@@ -52,7 +52,7 @@ export default function Masthead({ turkish }: MastheadProps) {
         <p className="wordmark">littlestronomer</p>
         {/* Under the flag the rider gets a traveler's blessing instead. */}
         <p className="tagline">
-          {turkish ? 'Yolun açık olsun: may your road be open.' : 'I make neural networks run faster.'}
+          {turkish ? 'Yolun açık olsun: may your road be open.' : 'Per aspera ad astra'}
         </p>
       </div>
       <button

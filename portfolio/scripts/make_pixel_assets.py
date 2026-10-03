@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent.parent
 FONTS = ROOT / "scripts" / "fonts"
 BUTTONS = ROOT / "public" / "buttons"
+PICTURES = ROOT / "public" / "images" / "turk"
 PAINTING = ROOT / "src" / "horizon" / "assets" / "painting.jpg"
 
 SILKSCREEN = ImageFont.truetype(str(FONTS / "Silkscreen-Regular.ttf"), 8)
@@ -69,6 +70,33 @@ def text(draw, xy, words, color, font=SILKSCREEN):
 def text_width(words, font=SILKSCREEN):
     left, _, right, _ = font.getbbox(words)
     return right - left
+
+
+def turkish_text(draw, xy, words, color, font=SILKSCREEN):
+    """Like text(), for words with İ or Ğ. Silkscreen has neither, so each is drawn as I or G
+    with its mark added by hand, on the row where the font puts the dots of Ö."""
+    x, y = xy
+    unit = font.size // 8
+    for letter in words:
+        plain = {"İ": "I", "Ğ": "G"}.get(letter, letter)
+        draw.text((x, y), plain, fill=rgb(color), font=font)
+        if letter == "İ":
+            draw.rectangle([x + unit, y + 2 * unit, x + 2 * unit - 1, y + 3 * unit - 1], fill=rgb(color))
+        if letter == "Ğ":
+            draw.rectangle([x + 2 * unit, y + 2 * unit, x + 4 * unit - 1, y + 3 * unit - 1], fill=rgb(color))
+            for column in (1, 4):
+                draw.rectangle([x + column * unit, y + unit, x + (column + 1) * unit - 1, y + 2 * unit - 1], fill=rgb(color))
+        x += font.getlength(plain)
+
+
+def stamp(image, left, top, rows, colors):
+    """Paints a small picture given as rows of letters. Each letter names a color; a dot leaves
+    the pixel as it is."""
+    pixels = image.load()
+    for dy, row in enumerate(rows):
+        for dx, cell in enumerate(row):
+            if cell != ".":
+                pixels[left + dx, top + dy] = rgb(colors[cell])
 
 
 def frame(image, outer=INK, light="#ffffff", dark="#000000", strength=0.22):
@@ -393,6 +421,624 @@ def button_cookies():
     return frame(image)
 
 
+# The buttons for the Turkish theme: the same strip, about tea, cats and the evil eye instead.
+
+
+def button_turkey_mentioned():
+    image, draw = new_button("#e30a17")
+    # The crescent is one disc with a smaller one, set toward the star, taken out of it.
+    for y in range(31):
+        for x in range(30):
+            if (x - 14) ** 2 + (y - 15) ** 2 <= 9.3**2 and (x - 16.6) ** 2 + (y - 15) ** 2 > 7.4**2:
+                draw.point([(x, y)], fill=rgb("#ffffff"))
+    stamp(image, 21, 13, ["..#..", ".###.", "#####", ".###.", ".#.#."], {"#": "#ffffff"})
+    text(draw, (33, TWO_LINES[0]), "TURKEY", "#ffffff")
+    text(draw, (33, TWO_LINES[1]), "MENTIONED", "#ffe3e5")
+    return frame(image)
+
+
+def button_cay():
+    image, draw = new_button("#6b0a10")
+    # A tulip-shaped glass of tea on its saucer, steaming.
+    glass = [
+        "...s...s...",
+        "....s...s..",
+        "...s...s...",
+        "...........",
+        ".wwwwwwwww.",
+        ".wTTTTTTTw.",
+        ".wTTTTTTTw.",
+        "..wtttttw..",
+        "...wtttw...",
+        "...wtttw...",
+        "..wdddddw..",
+        ".wdddddddw.",
+        ".wdddddddw.",
+        "..wdddddw..",
+        "...wwwww...",
+        "rwrwrwrwrwr",
+        ".ppppppppp.",
+    ]
+    colors = {"w": "#ffffff", "T": "#f6a03a", "t": "#e0701c", "d": "#b0380e", "r": "#e30a17", "p": "#e6cfd1", "s": "#f3b9bd"}
+    stamp(image, 7, 6, glass, colors)
+    text(draw, (26, TWO_LINES[0]), "POWERED", "#ffffff")
+    text(draw, (26, TWO_LINES[1]), "BY ÇAY", "#ffd98a")
+    return frame(image)
+
+
+def button_nazar():
+    image, draw = new_button("#0c2466")
+    # The blue glass bead that stares back at the evil eye: ring inside ring.
+    rings = [(10.3, "#1746c9"), (7.4, "#ffffff"), (4.7, "#59c3f5"), (2.3, "#0a0a12")]
+    for y in range(31):
+        for x in range(30):
+            for radius, color in rings:
+                if (x - 15) ** 2 + (y - 15) ** 2 <= radius**2:
+                    draw.point([(x, y)], fill=rgb(color))
+    text(draw, (31, TWO_LINES[0]), "NAZAR", "#ffffff")
+    turkish_text(draw, (31, TWO_LINES[1]), "DEĞMESİN", "#bfe6ff")
+    return frame(image)
+
+
+def button_cat():
+    image, draw = new_button("#27323d")
+    # A street cat's face: orange tabby, big dark eyes, pink ears, nose and cheeks.
+    face = [
+        "..o...........o..",
+        "..oi.........io..",
+        "..oio.......oio..",
+        "..ooosoosoosooo..",
+        "..ooooooooooooo..",
+        "..ooKWoooooKWoo..",
+        "..ooKKoooooKKoo..",
+        "l.obooocpcooobo.l",
+        ".loooocckccooool.",
+        "l.oooockckcoooo.l",
+        "...ooooooooooo...",
+        "....ooooooooo....",
+        "......ooooo......",
+    ]
+    colors = {**CAT_COLORS, "l": "#d7dde2"}
+    stamp(image, 6, 9, face, colors)
+    text(draw, (30, THREE_LINES[0]), "STREET", "#ffffff")
+    text(draw, (30, THREE_LINES[1]), "CAT", "#ffcf8a")
+    text(draw, (30, THREE_LINES[2]), "APPROVED", "#ffffff")
+    return frame(image)
+
+
+def button_kahve():
+    image, draw = new_button("#2c190f")
+    # A small cup of Turkish coffee on its saucer.
+    cup = [
+        "...s..s.......",
+        "..s..s........",
+        "...s..s.......",
+        "..............",
+        ".wwwwwwwww....",
+        ".wcccccccw.ww.",
+        ".wwwwwwwww...w",
+        ".wrwrwrwrw...w",
+        "..wwwwwww..ww.",
+        "...wwwww......",
+        "wwwwwwwwwww...",
+        ".ppppppppp....",
+    ]
+    colors = {"w": "#ffffff", "c": "#3b2110", "r": "#e30a17", "p": "#cdb9a6", "s": "#a58a76"}
+    stamp(image, 5, 9, cup, colors)
+    text(draw, (25, THREE_LINES[0]), "1 KAHVE", "#ffe7c2")
+    text(draw, (25, THREE_LINES[1]), "40 YIL", "#ffffff")
+    text(draw, (25, THREE_LINES[2]), "HATIR", "#ffffff")
+    return frame(image)
+
+
+def button_simit():
+    image, draw = new_button("#0f3b46")
+    # A ring of bread, twisted and covered in sesame.
+    pixels = image.load()
+    seeds = random.Random(7)
+    for y in range(31):
+        for x in range(30):
+            distance = math.hypot(x - 15, y - 15)
+            if 4.3 <= distance <= 10.3:
+                edge = distance > 9.3 or distance < 5.3
+                twist = (math.atan2(y - 15, x - 15) * 3.5 + distance * 0.5) % 2 < 0.45
+                pixels[x, y] = rgb("#8a4b14" if edge or twist else "#cf7f2c")
+                if not edge and not twist and seeds.random() < 0.22:
+                    pixels[x, y] = rgb("#f8e6b0")
+    text(draw, (31, 1), "TAZE", "#ffe7a3")
+    turkish_text(draw, (30, 7), "SİMİT", "#ffffff", SILKSCREEN_BIG)
+    return frame(image)
+
+
+def button_tavla():
+    image, draw = new_button("#5e3718")
+    # The points of the board along the top and bottom, and a six and a five on the dice.
+    for start in range(28, 86, 8):
+        for depth in range(5):
+            shade = "#8a5a2b" if (start // 8) % 2 == 0 else "#3f230e"
+            draw.line([(start + depth, 2 + depth), (start + 6 - depth, 2 + depth)], fill=rgb(shade))
+            draw.line([(start + depth, 28 - depth), (start + 6 - depth, 28 - depth)], fill=rgb(shade))
+    six = [
+        ".wwwwwwwww.",
+        "wwwwwwwwwww",
+        "wwkwwwwwkww",
+        "wwwwwwwwwww",
+        "wwwwwwwwwww",
+        "wwkwwwwwkww",
+        "wwwwwwwwwww",
+        "wwwwwwwwwww",
+        "wwkwwwwwkww",
+        "wwwwwwwwwww",
+        ".wwwwwwwww.",
+    ]
+    five = [
+        ".wwwwwwwww.",
+        "wwwwwwwwwww",
+        "wwkwwwwwkww",
+        "wwwwwwwwwww",
+        "wwwwwwwwwww",
+        "wwwwwkwwwww",
+        "wwwwwwwwwww",
+        "wwwwwwwwwww",
+        "wwkwwwwwkww",
+        "wwwwwwwwwww",
+        ".wwwwwwwww.",
+    ]
+    colors = {"w": "#fff8ea", "k": "#1b1208"}
+    stamp(image, 3, 3, six, colors)
+    stamp(image, 13, 16, five, colors)
+    text(draw, (32, TWO_LINES[0]), "ŞEŞ BEŞ", "#ffe7a3")
+    text(draw, (32, TWO_LINES[1]), "TAVLA?", "#ffffff")
+    return frame(image)
+
+
+# Small pictures for the Turkish theme's notes: food, tea and customs, 16 pixels square. Each is
+# a grid of letters, one letter to a color, with dots left clear.
+
+OUTLINE = "#2a0508"
+
+
+def round_picture(size, rings, middle=None):
+    """Rings inside rings, as rows of letters: each ring is (radius, letter), largest first."""
+    middle = middle or ((size - 1) / 2, (size - 1) / 2)
+    rows = []
+    for y in range(size):
+        row = ""
+        for x in range(size):
+            distance = math.hypot(x - middle[0], y - middle[1])
+            letter = "."
+            for radius, name in rings:
+                if distance <= radius:
+                    letter = name
+            row += letter
+        rows.append(row)
+    return rows
+
+
+def overlay(rows, left, top, patch):
+    """Lays a smaller grid of letters over a larger one; dots in the patch leave it alone."""
+    rows = [list(row) for row in rows]
+    for dy, line in enumerate(patch):
+        for dx, cell in enumerate(line):
+            if cell != ".":
+                rows[top + dy][left + dx] = cell
+    return ["".join(row) for row in rows]
+
+
+def picture_simit():
+    rows = round_picture(16, [(7.4, "e"), (6.4, "b"), (3.6, "e"), (2.6, ".")])
+    # A twist every few pixels around the ring, and sesame seeds between.
+    seeds = random.Random(3)
+    out = []
+    for y, row in enumerate(rows):
+        line = ""
+        for x, cell in enumerate(row):
+            if cell == "b":
+                turn = math.atan2(y - 7.5, x - 7.5)
+                cell = "e" if (turn * 2.9) % 2 < 0.33 else "s" if seeds.random() < 0.3 else "b"
+            line += cell
+        out.append(line)
+    return out, {"e": "#8a4b14", "b": "#cf7f2c", "s": "#f8e6b0"}
+
+
+def picture_nazar():
+    rows = round_picture(16, [(6.6, "b"), (4.7, "w"), (2.9, "l"), (1.3, "k")], middle=(7.5, 8.5))
+    rows = overlay(rows, 6, 0, ["yyyy", "y..y"])
+    return rows, {"b": "#1746c9", "w": "#ffffff", "l": "#59c3f5", "k": "#0a0a12", "y": "#ffd98a"}
+
+
+def picture_lahmacun():
+    rows = round_picture(16, [(7.2, "c"), (6.1, "t")], middle=(7, 7.5))
+    flecks = random.Random(5)
+    out = []
+    for row in rows:
+        line = ""
+        for cell in row:
+            if cell == "t":
+                roll = flecks.random()
+                cell = "g" if roll < 0.14 else "d" if roll < 0.3 else "t"
+            line += cell
+        out.append(line)
+    # A wedge of lemon at its side.
+    out = overlay(out, 10, 11, ["..KKK.", ".KyyyK", "KyyyyK", ".KKKK."])
+    return out, {"c": "#e9c98a", "t": "#b5482a", "g": "#6fbf4a", "d": "#7a2a14", "y": "#ffe14d", "K": OUTLINE}
+
+
+def picture_tavla():
+    die = ["KKKKKKKK", "KwwwwwwK", "KwwwwwwK", "KwwwwwwK", "KwwwwwwK", "KwwwwwwK", "KwwwwwwK", "KKKKKKKK"]
+    # Six pips in two columns of three.
+    six = overlay(die, 0, 0, ["........", "..k..k..", "........", "..k..k..", "........", "..k..k..", "........", "........"])
+    five = overlay(die, 0, 0, ["........", "..k..k..", "........", "...kk...", "........", "..k..k..", "........", "........"])
+    rows = overlay(["." * 16] * 16, 0, 1, six)
+    rows = overlay(rows, 8, 7, five)
+    return rows, {"K": OUTLINE, "w": "#fff8ea", "k": "#1b1208"}
+
+
+def picture_baklava():
+    """One diamond of baklava seen from above and a little to the front: a golden top with
+    pistachio down the middle, and the layers showing along its two near edges."""
+    rows = []
+    for y in range(16):
+        row = ""
+        for x in range(16):
+            across = abs(x - 7.5) / 7.5
+            # The top is a diamond; its near edges run from the side corners down to the front.
+            on_top = across + abs(y - 5.5) / 3.9 <= 1
+            near_edge = 5.5 + 3.9 * (1 - across)
+            if on_top:
+                nuts = abs(x - 7.5) / 3.4 + abs(y - 5.5) / 1.5 <= 1
+                lit = y < 5.5 and across + abs(y - 1 - 5.5) / 3.9 > 1
+                row += ("G" if (x + y) % 3 == 0 else "g") if nuts else "h" if lit else "y"
+            elif y > 5.5 and y - near_edge < 4:
+                row += "d" if int(y - near_edge) % 2 == 0 else "l"
+            else:
+                row += "."
+        rows.append(row)
+    return rows, {"y": "#f2b84a", "h": "#ffe29a", "d": "#c98a2a", "l": "#8a5514", "g": "#9ad16a", "G": "#5fae4a"}
+
+
+# The street cat: orange with darker stripes, cream at the muzzle and chest, pink in the ears,
+# on the nose and on the cheeks, and big dark eyes with a glint.
+CAT_COLORS = {
+    "o": "#f29a3f",
+    "s": "#c46c22",
+    "c": "#fff1da",
+    "i": "#f59aa5",
+    "p": "#f27f8f",
+    "b": "#ff9c8a",
+    "K": "#2a1508",
+    "k": "#2a1508",
+    "W": "#ffffff",
+}
+
+SMALL_PICTURES = {
+    "cat": (
+        [
+            "................",
+            "..o..........o..",
+            ".oio........oio.",
+            ".oooosossosoooo.",
+            ".oooooooooooooo.",
+            ".ooKWooooooKWoo.",
+            ".ooKKooooooKKoo.",
+            ".obooocppcooobo.",
+            ".oooooccccooooo.",
+            "..oooooccooooo..",
+            "...oooooooooo...",
+            "...ooccccccoo.s.",
+            "...ooccccccoo.o.",
+            "...oooccccooooo.",
+            "...ooooooooooo..",
+            "....cc....cc....",
+        ],
+        CAT_COLORS,
+    ),
+    "kahve": (
+        [
+            "................",
+            "....s...s.......",
+            "...s...s........",
+            "....s...s.......",
+            "................",
+            "..wwwwwwwwww....",
+            "..wccccccccw.ww.",
+            "..wwwwwwwwww...w",
+            "..wrwrwrwrww...w",
+            "..wwwwwwwwww..w.",
+            "...wwwwwwww.ww..",
+            "....wwwwww......",
+            ".wwwwwwwwwwww...",
+            "..pppppppppp....",
+            "................",
+            "................",
+        ],
+        {"w": "#ffffff", "c": "#3b2110", "r": "#e30a17", "p": "#e6cfd1", "s": "#f3b9bd"},
+    ),
+    "kolonya": (
+        [
+            "................",
+            "......CCCC......",
+            "......cccc......",
+            "......cccc......",
+            ".....gggggg.....",
+            "....gllllllg....",
+            "...gllllllllg...",
+            "...glWWWWWWlg...",
+            "...glWyyWWWlg...",
+            "...glWyyyWWlg...",
+            "...glWWynWWlg...",
+            "...glWWWWWWlg...",
+            "...gllllllllg...",
+            "...gLLLLLLLLg...",
+            "...gggggggggg...",
+            "................",
+        ],
+        {"g": "#d9f2ee", "l": "#eef08c", "L": "#cfd45a", "c": "#f2c14e", "C": "#a8791f", "W": "#ffffff", "y": "#ffd23e", "n": "#4fa34a"},
+    ),
+    "kemence": (
+        [
+            "......kbk.....h.",
+            ".....kbbbk...h..",
+            "......bbb...h...",
+            "......bsb..h....",
+            "......bsb.h.....",
+            ".....bbsbbh.....",
+            ".....bssshb.....",
+            ".....bsshsb.....",
+            ".....bshssb.....",
+            ".....bhBBsb.....",
+            "....hbsssb......",
+            "...h.bsssb......",
+            "..h..bbsbb......",
+            ".h....bbb.......",
+            "................",
+            "................",
+        ],
+        {"b": "#b5651d", "B": "#5a2c0c", "s": "#f4e9cf", "k": "#3a1c08", "h": "#fff4d6"},
+    ),
+    "guest": (
+        [
+            "................",
+            ".....s..s.......",
+            "......s..s......",
+            ".....s..s.......",
+            "................",
+            ".....rrrrrr.....",
+            "....rrrgrrrr....",
+            "...rrrrrrrorr...",
+            "..rrgrrrrrrrrr..",
+            "..rrrrrorrrgrr..",
+            ".WWWWWWWWWWWWWW.",
+            "WWWWWWWWWWWWWWWW",
+            ".wwwwwwwwwwwwww.",
+            "...wwwwwwwwww...",
+            "................",
+            "................",
+        ],
+        {"r": "#fff4d6", "g": "#6fbf4a", "o": "#f2a81d", "W": "#ffffff", "w": "#d9c9cb", "s": "#f3b9bd"},
+    ),
+    "kuymak": (
+        [
+            "................",
+            "...........SS...",
+            "..........ySS...",
+            ".........yy.S...",
+            "........yy..S...",
+            ".......yy...S...",
+            "......yy........",
+            "..KKKKyyKKKK....",
+            ".KyyyyyyyyyyK...",
+            ".KyyYyyyyYyyKKKK",
+            ".KyyyyyYyyyyK...",
+            ".KyYyyyyyyYyK...",
+            "..KKKKKKKKKK....",
+            "................",
+            "................",
+            "................",
+        ],
+        {"K": "#1c1412", "y": "#ffd23e", "Y": "#f2a81d", "S": "#d9dde2"},
+    ),
+    "hamsi": (
+        [
+            "................",
+            "................",
+            "....bbbbbb...b..",
+            "..bbbbbbbbbbbb..",
+            ".bkssssssssbb...",
+            "..ssssssssss.b..",
+            "....ssssss...b..",
+            "................",
+            "................",
+            "....bbbbbb...b..",
+            "..bbbbbbbbbbbb..",
+            ".bkssssssssbb...",
+            "..ssssssssss.b..",
+            "....ssssss...b..",
+            "................",
+            "................",
+        ],
+        {"b": "#4d7ea3", "s": "#dbeaf2", "k": "#0a1a26"},
+    ),
+    "kofte": (
+        [
+            "................",
+            "................",
+            "................",
+            "................",
+            "..mm...mm...mm..",
+            ".mdmm.mdmm.mdmm.",
+            ".mmdm.mmdm.mmdm.",
+            ".mdmm.mdmm.mdmm.",
+            "..mm...mm...mm..",
+            ".WWWWWWWWWWWWWW.",
+            "WWWWWWWWWWWWWWWW",
+            ".wwwwwwwwwwwwww.",
+            "...wwwwwwwwww...",
+            "................",
+            "................",
+            "................",
+        ],
+        {"m": "#9a5526", "d": "#4a240c", "W": "#ffffff", "w": "#d9c9cb"},
+    ),
+    "doner": (
+        [
+            ".......SS.......",
+            ".......SS.......",
+            ".....mmmmmm.....",
+            "....mhmmmmMm....",
+            "....mmmMmmmm....",
+            "....mhmmmMmm....",
+            ".....mmMmmm.....",
+            ".....hmmmMm.....",
+            ".....mmMmmm.....",
+            "......mmmm......",
+            "......mMmm......",
+            ".......SS.......",
+            "....SSSSSSSS....",
+            "...SSSSSSSSSS...",
+            "................",
+            "................",
+        ],
+        {"m": "#b5652a", "M": "#7a3a14", "h": "#e09a52", "S": "#d9dde2"},
+    ),
+    "manti": (
+        [
+            "................",
+            "................",
+            "................",
+            "..BBBBBBBBBBBB..",
+            ".ByyyyyyyyyyyyB.",
+            ".ByrdyydyrydyyB.",
+            ".BydyryydyydryB.",
+            ".ByyrydyyryydyB.",
+            "..BBBBBBBBBBBB..",
+            "..WWWWWWWWWWWW..",
+            "...WWWWWWWWWW...",
+            "....WWWWWWWW....",
+            ".....wwwwww.....",
+            "................",
+            "................",
+            "................",
+        ],
+        {"B": "#8fb7e8", "y": "#ffffff", "d": "#e9c98a", "r": "#e23b1a", "W": "#f4f4f4", "w": "#d9c9cb"},
+    ),
+    "fasulye": (
+        [
+            "................",
+            "................",
+            "................",
+            "..BBBBBBBBBBBB..",
+            ".BooooooooooooB.",
+            ".BobboobboobboB.",
+            ".BoobboobboobbB.",
+            ".BobboobboobboB.",
+            "..BBBBBBBBBBBB..",
+            "..WWWWWWWWWWWW..",
+            "...WWWWWWWWWW...",
+            "....WWWWWWWW....",
+            ".....wwwwww.....",
+            "................",
+            "................",
+            "................",
+        ],
+        {"B": "#8fb7e8", "o": "#e0622a", "b": "#fff1d0", "W": "#f4f4f4", "w": "#d9c9cb"},
+    ),
+    "caydanlik": (
+        [
+            ".....s...s......",
+            "......s...s.....",
+            ".......kk.......",
+            ".....tttttt.....",
+            "....tttttttt.hh.",
+            "..ptttthtttt..h.",
+            "....tttttttt.hh.",
+            ".....tttttt.....",
+            "...TTTTTTTTTT...",
+            "..TTTTTTTTTTTThh",
+            "ppTTThTTTTTTTT.h",
+            ".pTTTTTTTTTTTT.h",
+            "..TTTTTTTTTTTThh",
+            "...TTTTTTTTTT...",
+            "................",
+            "................",
+        ],
+        {"t": "#dfe5ea", "T": "#b9c2cb", "h": "#1c1412", "k": "#1c1412", "p": "#b9c2cb", "s": "#f3b9bd"},
+    ),
+}
+
+# A cat asleep, in two pictures: breathing out, and breathing in with its back a pixel higher
+# and another Z drifting up from it.
+SLEEPING_CAT = (
+    [
+        "........................",
+        "........................",
+        "...............zzzz.....",
+        ".................z......",
+        "................z.......",
+        "...............zzzz.....",
+        "........................",
+        "..o......o..............",
+        ".oio....oio...ooooooo...",
+        ".oooooooooo.oosoosoooo..",
+        "ooooooooooooooooooooooo.",
+        "okookookookosoosoosooooo",
+        "ookkooookkoosooooooooooo",
+        "obbooppoobbosooooooooooo",
+        ".ooooccccoooooooooooooo.",
+        "..oooocccoosoosoosoooo..",
+    ],
+    [
+        "...................zzzzz",
+        "..............zzzz....z.",
+        "................z....z..",
+        "...............z....z...",
+        "..............zzzz.zzzzz",
+        "........................",
+        "..............ooooooo...",
+        "..o......o..oosoosoooo..",
+        ".oio....oio.ooooooooooo.",
+        ".oooooooooo.ooooooooooo.",
+        "ooooooooooooooooooooooo.",
+        "okookookookosoosoosooooo",
+        "ookkooookkoosooooooooooo",
+        "obbooppoobbosooooooooooo",
+        ".ooooccccoooooooooooooo.",
+        "..oooocccoosoosoosoooo..",
+    ],
+    {**CAT_COLORS, "z": "#ffffff"},
+)
+
+
+def small_picture(rows, colors):
+    """A grid of letters as a see-through image, one pixel to a letter."""
+    width = len(rows[0])
+    assert all(len(row) == width for row in rows), [len(row) for row in rows]
+    image = Image.new("RGBA", (width, len(rows)), (0, 0, 0, 0))
+    pixels = image.load()
+    for y, row in enumerate(rows):
+        for x, cell in enumerate(row):
+            if cell != ".":
+                pixels[x, y] = rgb(colors[cell]) + (255,)
+    return image
+
+
+def turkish_pictures():
+    PICTURES.mkdir(parents=True, exist_ok=True)
+    made = dict(SMALL_PICTURES)
+    makers = {"simit": picture_simit, "nazar": picture_nazar, "lahmacun": picture_lahmacun, "tavla": picture_tavla, "baklava": picture_baklava}
+    for name, make in makers.items():
+        made[name] = make()
+    for name, (rows, colors) in made.items():
+        small_picture(rows, colors).save(PICTURES / f"{name}.png", optimize=True)
+    # The sleeping cat's two pictures go side by side in one image.
+    out, breathing_in, colors = SLEEPING_CAT
+    strip = Image.new("RGBA", (len(out[0]) * 2, len(out)), (0, 0, 0, 0))
+    strip.paste(small_picture(out, colors), (0, 0))
+    strip.paste(small_picture(breathing_in, colors), (len(out[0]), 0))
+    strip.save(PICTURES / "sleeping-cat.png", optimize=True)
+    return sorted(made) + ["sleeping-cat"]
+
+
 def walk_thumbnail():
     """The painting as pixel art: cropped, shrunk and reduced to a few colors."""
     painting = Image.open(PAINTING).convert("RGB")
@@ -471,10 +1117,18 @@ def main():
         "night-owl": button_night,
         "trabzon": button_trabzon,
         "no-cookies": button_cookies,
+        "turkey-mentioned": button_turkey_mentioned,
+        "powered-by-cay": button_cay,
+        "nazar": button_nazar,
+        "street-cat": button_cat,
+        "kahve": button_kahve,
+        "simit": button_simit,
+        "tavla": button_tavla,
     }
     for name, make in buttons.items():
         make().save(BUTTONS / f"{name}.png", optimize=True)
     print("buttons:", ", ".join(buttons))
+    print("pictures:", ", ".join(turkish_pictures()))
     print(walk_thumbnail())
     print(star_tile())
     print(preview_image())
