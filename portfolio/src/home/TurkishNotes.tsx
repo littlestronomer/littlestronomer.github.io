@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import SleepingCat from './SleepingCat'
 import TeaGlass from './TeaGlass'
 
 // What the page says in the Turkish theme. No engineering here: food, tea, customs, words and
@@ -40,7 +41,7 @@ export function TurkHello({ onLeave }: TurkHelloProps) {
       <h1 id="turk-hello-title">Göktürk Batın Dervişoğlu</h1>
       <p className="note-lead">
         A Turk was mentioned. While this mode is on there is no engineering on this page: only
-        food, tea, horses and history. Hoş geldiniz, welcome.
+        food, tea, horses and history. Hoş geldiniz efendim :)
       </p>
       <ul className="note-highlights">
         <li>
@@ -154,8 +155,8 @@ export function TurkNotes() {
           Street cats belong to everyone. Shops put out water and food, and a cat asleep on your
           chair has the right of way.
         </Pictured>
-        {/* One of them, asleep on top of this box. */}
-        <span className="sleeping-cat" aria-hidden="true" />
+        {/* One of them, asleep on top of this box. It does not like to be poked. */}
+        <SleepingCat />
       </article>
 
       <article className="note" id="turk-memes" tabIndex={-1} aria-labelledby="turk-memes-title">

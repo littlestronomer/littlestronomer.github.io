@@ -1,5 +1,5 @@
 import { WAY_TO_THE_QUEEN } from './constellations'
-import { Pixels, clearPlot, prefersReducedMotion, type Rgb } from './pixels'
+import { Pixels, clearPlot, prefersReducedMotion, whileVisible, type Rgb } from './pixels'
 import { REACH, figureAt, placeFigures, trailThrough, type Box, type Figure, type Trail } from './skyFigures'
 import { INK, paintFar, paintFlags, paintLit, paintMiddle } from './skyPaint'
 import { plotWord, shineAt, type Plot } from './starChart'
@@ -11,7 +11,7 @@ import { currentTheme, watchTheme } from './theme'
 // slowly than the page scrolls, so the page seems to float in front of it. The sky itself has
 // depth. The Milky Way is the farthest thing in it and barely moves; the constellations move a
 // little; and every loose star has a depth of its own, so the near ones pass the far ones as
-// the page scrolls. Under the cursor a constellation shines: a crest of light crosses its
+// the page scrolls. About half of the loose stars twinkle. Under the cursor a constellation shines: a crest of light crosses its
 // lines from the upper left to the lower right, again and again, like a Mexican wave.
 //
 // The northern constellations share the patch of open sky above the footer, placed around the
@@ -30,6 +30,8 @@ const SCALE = 2
 const DRIFT = { far: 0.12, middle: 0.3 }
 /** The loose stars are scattered the same way every time. */
 const STAR_SEED = 1054
+/** How many times a second the loose stars are drawn again while nothing scrolls, so that they twinkle. */
+const TWINKLE_FPS = 10
 /** Sky pixels per degree, the same scale as Orion in the header. */
 const PIXELS_PER_DEGREE = { wide: 5.2, narrow: 3.6 }
 const GLOW_IN_MS = 140
@@ -89,6 +91,17 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
   /** The pictures of the stars, kept on a canvas so that they can be stamped. */
   const sheet = document.createElement('canvas')
   starSheet().show(sheet)
+  /** When the loose stars were last drawn. */
+  let starsDrawn = 0
+
+  /** Draws the loose stars where the scrolling has brought them, as they twinkle at this moment. */
+  const drawStars = (now: number) => {
+    starsDrawn = now
+    for (const { canvas, stars } of loose) {
+      const pen = canvas.getContext('2d')
+      if (pen) drawField(pen, sheet, stars, SCALE, window.scrollY, now)
+    }
+  }
   let pointer: { x: number; y: number; mouse: boolean } | null = null
   let frame = 0
   let lastFrame = 0
@@ -219,10 +232,7 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
       for (const layer of [still, lit]) layer.style.transform = `translate3d(0, ${-slid}px, 0)`
       far.style.transform = `translate3d(0, ${-Math.round(window.scrollY * farSlide)}px, 0)`
     }
-    for (const { canvas, stars } of loose) {
-      const pen = canvas.getContext('2d')
-      if (pen) drawField(pen, sheet, stars, SCALE, window.scrollY)
-    }
+    drawStars(performance.now())
     if (pointer?.mouse) touch()
   }
 
@@ -348,6 +358,13 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
     touch()
   }
 
+  // The stars twinkle while the page is at rest too. Scrolling draws them anyway, so then this waits.
+  const stopTwinkling = moving
+    ? whileVisible(holder, TWINKLE_FPS, (now) => {
+        if (loose.length && now - starsDrawn > 1000 / TWINKLE_FPS - 4) drawStars(now)
+      })
+    : () => {}
+
   const sizes = new ResizeObserver(queueRebuild)
   sizes.observe(page)
   const unwatch = watchTheme(queueRebuild)
@@ -361,6 +378,7 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
   return () => {
     sizes.disconnect()
     unwatch()
+    stopTwinkling()
     cancelAnimationFrame(frame)
     cancelAnimationFrame(pending)
     window.removeEventListener('resize', queueRebuild)

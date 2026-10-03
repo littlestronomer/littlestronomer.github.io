@@ -7,6 +7,10 @@ import { seededRandom } from './tinyNet'
 // the larger and brighter it is drawn; and there are many more far stars than near ones. So
 // the stars pass one another as the page scrolls, and the sky reads as a space with depth
 // instead of a few flat sheets.
+//
+// About half of them twinkle the way the stars in the header do: each in its own slow rhythm
+// shines one step brighter for a moment, and later one step dimmer. A bright star that shines
+// grows arms for that moment.
 
 /** The colors of stars one pixel across, from the faintest to the brightest. */
 export const STAR_COLORS = ['#2c2969', '#48449a', '#8a86d0', '#d9d6ff'].map(rgb)
@@ -23,6 +27,8 @@ const DEPTH = { far: 0.14, near: 0.92 }
 const THINNING = 1.6
 /** One loose star on screen to about this many sky pixels. */
 const STAR_ROOM = 520
+/** The share of the stars that twinkle. The faintest never do. */
+const TWINKLERS = 0.45
 /** A star's picture reaches this far from its middle, in sky pixels. */
 const REACH = 2
 const CELL = REACH * 2 + 1
@@ -36,6 +42,12 @@ export type FieldStar = {
   drift: number
   /** Which of the PICTURES it is drawn with. */
   picture: number
+  /**
+   * Its twinkling: where in its rhythm it starts, and how fast the rhythm runs, in radians a
+   * second. A steady star has no speed.
+   */
+  phase: number
+  speed: number
 }
 
 /** How a star is drawn: as one pixel of a color, or with arms like the stars of a constellation. */
@@ -62,6 +74,13 @@ const BRIGHT_DOT = 2
 const ORANGE_DOT = 3
 const BLUE_DOT = 4
 const ARMS = [5, 7, 9]
+/**
+ * For each picture, the picture one step brighter and the one a step dimmer, which a star shows
+ * while it twinkles: a dot grows brighter and then grows arms, and arms grow longer. The orange
+ * and blue dots only brighten, and the largest stars only dim.
+ */
+const BRIGHTER = [DOT, BRIGHT_DOT, ARMS[0], ARMS[0] + 1, ARMS[0], ARMS[1], ARMS[1] + 1, ARMS[2], ARMS[2] + 1, ARMS[2], ARMS[2] + 1]
+const DIMMER = [FAINT_DOT, FAINT_DOT, DOT, ORANGE_DOT, BLUE_DOT, BRIGHT_DOT, ORANGE_DOT, ARMS[0], ARMS[0] + 1, ARMS[1], ARMS[1] + 1]
 
 /**
  * Which picture a star at some depth gets. Far stars are faint dots; nearer ones are brighter,
@@ -100,11 +119,15 @@ export function scatterField(width: number, view: number, tall: (drift: number) 
     // Each star on screen stands for several in all: as many as its strip is taller than the window.
     for (let left = tall(drift) / view; left > 0; left--) {
       if (left < 1 && random() > left) break
+      const picture = pictureAt(drift, random)
       stars.push({
         x: Math.floor(random() * width),
         y: Math.floor(random() * tall(drift)),
         drift,
-        picture: pictureAt(drift, random),
+        picture,
+        phase: random() * 2 * Math.PI,
+        // The same pace as the stars in the header: a rhythm of three to twelve seconds.
+        speed: picture !== FAINT_DOT && random() < TWINKLERS ? 0.5 + random() * 1.8 : 0,
       })
       drift = depth()
     }
@@ -130,12 +153,27 @@ export function starSheet() {
   return sheet
 }
 
+/** The picture a star shows at a moment: its own, or one a step brighter or dimmer while it twinkles. */
+function pictureNow(star: FieldStar, now: number) {
+  if (!star.speed) return star.picture
+  const wave = Math.sin((now / 1000) * star.speed + star.phase)
+  return wave > 0.75 ? BRIGHTER[star.picture] : wave < -0.8 ? DIMMER[star.picture] : star.picture
+}
+
 /**
  * Draws the stars on a canvas the size of the window, as they stand when the page has scrolled
- * `scrolled` screen pixels: each has moved up by its own share of that. `sheet` is a canvas
- * holding the starSheet, and `scale` is how many screen pixels one sky pixel takes.
+ * `scrolled` screen pixels, and as they twinkle at the moment `now`, in milliseconds: each has
+ * moved up by its own share of the scrolling. `sheet` is a canvas holding the starSheet, and
+ * `scale` is how many screen pixels one sky pixel takes.
  */
-export function drawField(pen: CanvasRenderingContext2D, sheet: CanvasImageSource, stars: FieldStar[], scale: number, scrolled: number) {
+export function drawField(
+  pen: CanvasRenderingContext2D,
+  sheet: CanvasImageSource,
+  stars: FieldStar[],
+  scale: number,
+  scrolled: number,
+  now: number,
+) {
   const { width, height } = pen.canvas
   const size = CELL * scale
   pen.clearRect(0, 0, width, height)
@@ -143,6 +181,6 @@ export function drawField(pen: CanvasRenderingContext2D, sheet: CanvasImageSourc
   for (const star of stars) {
     const top = Math.round(star.y * scale - scrolled * star.drift) - REACH * scale
     if (top > height || top < -size) continue
-    pen.drawImage(sheet, star.picture * CELL, 0, CELL, CELL, (star.x - REACH) * scale, top, size, size)
+    pen.drawImage(sheet, pictureNow(star, now) * CELL, 0, CELL, CELL, (star.x - REACH) * scale, top, size, size)
   }
 }

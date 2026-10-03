@@ -966,9 +966,11 @@ SMALL_PICTURES = {
     ),
 }
 
-# A cat asleep, in two pictures: breathing out, and breathing in with its back a pixel higher
-# and another Z drifting up from it.
-SLEEPING_CAT = (
+# The cat on top of the box, in pictures 24 pixels square. It sleeps in two of them: breathing
+# out, and breathing in with its back a pixel higher and another Z drifting up from it. Poked,
+# it opens its eyes, gets half up, and sits. The pictures of it lying down are 16 pixels tall
+# and stand at the bottom of the square.
+CAT_LYING = [
     [
         "........................",
         "........................",
@@ -1005,8 +1007,141 @@ SLEEPING_CAT = (
         ".ooooccccoooooooooooooo.",
         "..oooocccoosoosoosoooo..",
     ],
-    {**CAT_COLORS, "z": "#ffffff"},
-)
+    # Awake, still lying.
+    [
+        "........................",
+        "........................",
+        "........................",
+        "........................",
+        "........................",
+        "........................",
+        "........................",
+        "..o......o..............",
+        ".oio....oio...ooooooo...",
+        ".oooooooooo.oosoosoooo..",
+        "ooooooooooooooooooooooo.",
+        "ooKWooooKWoosoosoosooooo",
+        "ooKKooooKKoosooooooooooo",
+        "obbooppoobbosooooooooooo",
+        ".ooooccccoooooooooooooo.",
+        "..oooocccoosoosoosoooo..",
+    ],
+]
+
+# Half up: its front legs straight, its back still low.
+CAT_RISING = [
+    ".....o......o...........",
+    "....oio....oio..........",
+    "....oooooooooo..........",
+    "...ooooooooooo..........",
+    "...ooKWooooKWo..........",
+    "...ooKKooooKKo..........",
+    "...obbooppoobb..ooooo...",
+    "....oooccccooooosoosoo..",
+    ".....oocccccooooooooooo.",
+    ".....oocccccosoosoosooo.",
+    ".....ooccccooooooooooooo",
+    ".....oocccooosoosoosoooo",
+    ".....oocccooooooooooooo.",
+    ".....occcoooccooooooooo.",
+    ".....occcoooccoooooooo..",
+]
+
+# Sitting up, facing us, with its tail beside it.
+CAT_SITTING = [
+    ".........o......o.......",
+    "........oio....oio......",
+    "........oooooooooo......",
+    ".......ooooooooooo......",
+    ".......ooKWooooKWo......",
+    ".......ooKKooooKKo......",
+    ".......obbooppoobb......",
+    "........oooccccooo......",
+    ".........ooccccoo.......",
+    "........oooccccooo......",
+    ".......soocccccoos......",
+    ".......ooocccccooo......",
+    "......osoocccccooso.....",
+    "......oooocccccoooo.....",
+    ".....ooooocccccooooo....",
+    ".....osooocccccooosoo...",
+    ".....oooooocccooooooos..",
+    ".....ooooooooooooooo.oo.",
+    ".....oooooooooooooooooo.",
+    "......occcoooooccco.....",
+    "......occcoooooccco.....",
+]
+
+
+def cat_poses():
+    """The cat's pictures in the order the page counts them (see src/home/SleepingCat.tsx)."""
+
+    def square(rows):
+        return ["." * 24] * (24 - len(rows)) + rows
+
+    def paw_up(columns):
+        """The sitting cat with one front paw off the ground: where it stood there is only fur."""
+        feet = [row[: columns.start] + row[columns].replace("c", "o") + row[columns.stop :] for row in CAT_SITTING[-2:]]
+        return CAT_SITTING[:-2] + feet
+
+    poses = [*CAT_LYING, CAT_RISING, CAT_SITTING, paw_up(slice(6, 11)), paw_up(slice(14, 19))]
+    return [square(rows) for rows in poses]
+
+
+CAT_POSE_COLORS = {**CAT_COLORS, "z": "#ffffff"}
+
+# The mouse cursors of the portfolio, in pixels like everything else on it: an arrow, a hand
+# that points at whatever can be clicked, and a bar for text. Each is shown at two screen pixels
+# to each of its own. The cat's swat draws them too (see src/home/SleepingCat.tsx), so the page
+# says there where each one's point is.
+CURSORS = {
+    "arrow": [
+        "k.......",
+        "kk......",
+        "kwk.....",
+        "kwwk....",
+        "kwwwk...",
+        "kwwwwk..",
+        "kwwwwwk.",
+        "kwwwwwwk",
+        "kwwwwkkk",
+        "kwwkwk..",
+        "kwk.kwk.",
+        "kk..kwk.",
+        ".....kk.",
+    ],
+    "hand": [
+        "...kk.....",
+        "..kwwk....",
+        "..kwwk....",
+        "..kwwk....",
+        "..kwwkkkk.",
+        "..kwwkwwwk",
+        "kkkwwwwwwk",
+        "kwwwwwwwwk",
+        "kwwwwwwwwk",
+        ".kwwwwwwk.",
+        "..kwwwwk..",
+        "..kkkkkk..",
+    ],
+    "text": [
+        "kkk.kkk",
+        "kwwkwwk",
+        "kkkwkkk",
+        "..kwk..",
+        "..kwk..",
+        "..kwk..",
+        "..kwk..",
+        "..kwk..",
+        "..kwk..",
+        "..kwk..",
+        "kkkwkkk",
+        "kwwkwwk",
+        "kkk.kkk",
+    ],
+}
+CURSOR_COLORS = {"k": "#120f26", "w": "#ffffff"}
+CURSOR_SCALE = 2
 
 
 def small_picture(rows, colors):
@@ -1030,13 +1165,52 @@ def turkish_pictures():
         made[name] = make()
     for name, (rows, colors) in made.items():
         small_picture(rows, colors).save(PICTURES / f"{name}.png", optimize=True)
-    # The sleeping cat's two pictures go side by side in one image.
-    out, breathing_in, colors = SLEEPING_CAT
-    strip = Image.new("RGBA", (len(out[0]) * 2, len(out)), (0, 0, 0, 0))
-    strip.paste(small_picture(out, colors), (0, 0))
-    strip.paste(small_picture(breathing_in, colors), (len(out[0]), 0))
+    # The cat's pictures go side by side in one image.
+    poses = cat_poses()
+    strip = Image.new("RGBA", (24 * len(poses), 24), (0, 0, 0, 0))
+    for i, rows in enumerate(poses):
+        strip.paste(small_picture(rows, CAT_POSE_COLORS), (24 * i, 0))
     strip.save(PICTURES / "sleeping-cat.png", optimize=True)
     return sorted(made) + ["sleeping-cat"]
+
+
+def pixel_svg(rows, colors, scale):
+    """A grid of letters as an SVG picture with hard edges, `scale` screen pixels to a letter."""
+    paths = []
+    for letter, color in colors.items():
+        runs = []
+        for y, row in enumerate(rows):
+            x = 0
+            while x < len(row):
+                if row[x] != letter:
+                    x += 1
+                    continue
+                start = x
+                while x < len(row) and row[x] == letter:
+                    x += 1
+                runs.append(f"M{start} {y}h{x - start}v1H{start}z")
+        if runs:
+            paths.append(f'<path fill="{color}" d="{"".join(runs)}"/>')
+    width, height = len(rows[0]), len(rows)
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width * scale}" height="{height * scale}" '
+        f'viewBox="0 0 {width} {height}" shape-rendering="crispEdges">{"".join(paths)}</svg>\n'
+    )
+
+
+def cursors():
+    """
+    The mouse cursors, next to the stylesheet that uses them. Each is an SVG, which stays sharp on
+    every screen, and a PNG of the same picture for a browser that will not take an SVG cursor.
+    """
+    out = ROOT / "src" / "home" / "assets"
+    for name, rows in CURSORS.items():
+        assert all(len(row) == len(rows[0]) for row in rows), name
+        (out / f"cursor-{name}.svg").write_text(pixel_svg(rows, CURSOR_COLORS, CURSOR_SCALE))
+        picture = small_picture(rows, CURSOR_COLORS)
+        size = (picture.width * CURSOR_SCALE, picture.height * CURSOR_SCALE)
+        picture.resize(size, Image.Resampling.NEAREST).save(out / f"cursor-{name}.png", optimize=True)
+    return sorted(CURSORS)
 
 
 def walk_thumbnail():
@@ -1129,6 +1303,7 @@ def main():
         make().save(BUTTONS / f"{name}.png", optimize=True)
     print("buttons:", ", ".join(buttons))
     print("pictures:", ", ".join(turkish_pictures()))
+    print("cursors:", ", ".join(cursors()))
     print(walk_thumbnail())
     print(star_tile())
     print(preview_image())

@@ -174,10 +174,10 @@ function smallFlag() {
       flag.set(x, y, inside >= 8 ? white : x === width - 1 || y === height - 1 ? seam : red)
     }
   }
-  // At this size the star is a small cross.
-  for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, 2], [0, -2]]) {
-    flag.set(16 + dx, 10 + dy, white)
-  }
+  // At this size the star is five pixels across: a point on top, an arm to each side, and two
+  // points below.
+  const star = ['..#..', '#####', '.###.', '.#.#.', '#...#']
+  star.forEach((row, dy) => [...row].forEach((cell, dx) => cell === '#' && flag.set(14 + dx, 8 + dy, white)))
   return flag
 }
 
