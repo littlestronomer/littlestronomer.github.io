@@ -75,6 +75,5 @@ export function llmsText() {
 
 - [Portfolio](${SITE_URL}): these notes on a pixel-art night sky, next to a small neural network that trains live in the browser
 - [A walk along the water](${link('/walk/')}): my hobby corner, the same notes on a painted shore that scrolls sideways
-- [Résumé (PDF)](${link(LINKS.resume)})
 `
 }

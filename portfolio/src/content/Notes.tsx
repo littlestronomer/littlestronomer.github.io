@@ -89,7 +89,6 @@ export function HelloNote() {
         </li>
       </ul>
       <p className="note-links">
-        <a href={LINKS.resume}>Résumé (PDF)</a>
         <a href={LINKS.github}>GitHub</a>
         <a href={LINKS.kaggle}>Kaggle</a>
         <a href={LINKS.linkedin}>LinkedIn</a>
