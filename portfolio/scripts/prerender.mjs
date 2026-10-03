@@ -23,15 +23,14 @@ const vite = await createServer({
 })
 
 try {
-  const { renderHome, renderWalk, renderWalkPage, structuredData, llmsText } = await vite.ssrLoadModule('/src/prerender.tsx')
+  const { renderHome, renderWalk, structuredData, llmsText } = await vite.ssrLoadModule('/src/prerender.tsx')
   // JSON inside a <script> must not be able to close the tag early.
   const profile = `<script type="application/ld+json">${JSON.stringify(structuredData()).replace(/</g, '\\u003c')}</script>`
 
   await fillPage(join(dist, 'index.html'), renderHome(), profile)
   await fillPage(join(dist, 'walk', 'index.html'), renderWalk(), profile)
-  await fillPage(join(dist, 'walk', 'page', 'index.html'), renderWalkPage(), profile)
   await writeFile(join(dist, 'llms.txt'), llmsText())
-  console.log(`prerendered index.html, walk/index.html, walk/page/index.html and llms.txt in ${dist}`)
+  console.log(`prerendered index.html, walk/index.html and llms.txt in ${dist}`)
 } finally {
   await vite.close()
 }

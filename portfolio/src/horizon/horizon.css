@@ -13,11 +13,9 @@
   --font-body: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Arial Rounded MT Bold', system-ui, sans-serif;
   /* Room for mobile browser toolbars that cover the bottom of a 100vh stage. */
   --toolbar-room: 0px;
-  /* The paper boat floats this far above the bottom edge; notes keep clear of it. */
+  /* The paper boat floats this far above the bottom edge. */
   --boat-width: clamp(72px, 7vw, 120px);
   --boat-bottom: calc(var(--toolbar-room) + max(14px, 3vh));
-  --note-top: 11vh;
-  --note-bottom: calc(var(--boat-bottom) + var(--boat-width) * 0.55 + 4vh);
 }
 
 @supports (height: 100svh) {
@@ -67,277 +65,23 @@ body {
 .horizon-track {
   position: absolute;
   inset: 0 auto 0 0;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  width: max-content;
-  padding-inline: 6vw 14vw;
+  /* How long the walk is: this many screens of shore pass by. */
+  width: 380vw;
+  pointer-events: none;
   will-change: transform;
 }
 
-/* Each note is a sheet from an unfolded paper plane: a centre fold and two nose folds. */
-.note {
-  --tilt: -1deg;
-  flex: none;
-  width: min(25rem, 84vw);
-  padding: 1.6rem 1.85rem 1.5rem;
-  border-radius: 2px;
-  color: var(--ink);
-  background:
-    linear-gradient(90deg, transparent calc(50% - 0.5px), var(--crease) 50%, transparent calc(50% + 0.5px)),
-    linear-gradient(to bottom right, transparent calc(50% - 0.5px), var(--crease) 50%, transparent calc(50% + 0.5px)) left top / 50% 34% no-repeat,
-    linear-gradient(to bottom left, transparent calc(50% - 0.5px), var(--crease) 50%, transparent calc(50% + 0.5px)) right top / 50% 34% no-repeat,
-    var(--paper);
-  box-shadow:
-    0 22px 44px -26px rgb(8 36 80 / 0.55),
-    0 2px 5px rgb(8 36 80 / 0.16);
-  rotate: var(--tilt);
-}
-
-/* A note too long for the screen scrolls inside itself, below the section links. */
-.horizon-track .note {
-  max-height: calc(100svh - var(--note-bottom) - 3.5rem);
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-.note:focus {
-  outline: none;
-}
-
-.note:focus-visible {
-  outline: 2px solid var(--straw);
-  outline-offset: 4px;
-}
-
-.note h1,
-.note h2 {
-  margin: 0 0 0.55rem;
-  font-family: var(--font-hand);
-  font-weight: 600;
-  line-height: 1.15;
-  color: var(--sky-ink);
-}
-
-.note h1 {
-  font-size: clamp(2rem, 1.4rem + 1.4vw, 2.6rem);
-}
-
-.note h2 {
-  font-size: 1.6rem;
-}
-
-.note h3 {
-  margin: 0.95rem 0 0.05rem;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--sky-ink);
-}
-
-.note h2 + h3 {
-  margin-top: 0.35rem;
-}
-
-.note p {
-  margin: 0 0 0.7rem;
-}
-
-.note p:last-child {
-  margin-bottom: 0;
-}
-
-.note .note-lead {
-  font-size: 1.05rem;
-}
-
-.note .note-meta {
-  margin-bottom: 0.3rem;
-  font-size: 0.86rem;
-  line-height: 1.5;
-  color: var(--muted);
-}
-
-.note-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.25rem;
-}
-
-/* A project's links sit right under its description. */
-.note p:has(+ .note-links) {
-  margin-bottom: 0.15rem;
-}
-
-.note-toolbox-list {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.35rem 1rem;
-  margin: 0.4rem 0 0.9rem;
-}
-
-.note-toolbox-list dt {
-  font-family: var(--font-hand);
-  font-weight: 600;
-  color: var(--sky-ink);
-}
-
-.note-toolbox-list dd {
-  margin: 0;
-}
-
-.note-commits {
-  margin: 0.5rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.note-commits li {
-  display: grid;
-  margin-bottom: 0.6rem;
-}
-
-.note-commits a {
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   overflow: hidden;
+  clip-path: inset(50%);
   white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
-/* A commit that lands while the page is open glows straw-yellow for a moment. */
-.note-commits li.is-new {
-  animation: commit-arrives 2.5s ease-out;
-}
-
-@keyframes commit-arrives {
-  from {
-    background: rgb(226 180 79 / 0.35);
-  }
-
-  to {
-    background: transparent;
-  }
-}
-
-/* A small pulsing dot says the list is being kept up to date. */
-.live-dot {
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
-  margin-left: 0.45rem;
-  border-radius: 50%;
-  background: var(--leaf);
-  vertical-align: 0.1em;
-  animation: live-pulse 2.4s ease-out infinite;
-}
-
-@keyframes live-pulse {
-  from {
-    box-shadow: 0 0 0 0 rgb(31 111 74 / 0.45);
-  }
-
-  70%,
-  to {
-    box-shadow: 0 0 0 0.45rem rgb(31 111 74 / 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .note-commits li.is-new,
-  .live-dot {
-    animation: none;
-  }
-}
-
-.note a {
-  color: var(--leaf);
-  font-weight: 500;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.22em;
-}
-
-.note a:hover {
-  text-decoration-thickness: 2px;
-}
-
-.note a:focus-visible,
-.horizon-nav a:focus-visible,
-.one-page-nav a:focus-visible {
-  outline: 2px solid var(--straw);
-  outline-offset: 3px;
-  border-radius: 2px;
-}
-
-/* Where each note rests along the walk: alternately in the sky and over the water. */
-.note-hello {
-  --tilt: -1.4deg;
-  width: min(28rem, 84vw);
-  margin-top: var(--note-top);
-}
-
-.note-now {
-  --tilt: 1deg;
-  align-self: flex-end;
-  margin: 0 0 var(--note-bottom) 20vw;
-}
-
-.note-papers {
-  --tilt: -1.1deg;
-  margin: var(--note-top) 0 0 14vw;
-}
-
-.note-work {
-  --tilt: -0.8deg;
-  width: min(30rem, 84vw);
-  margin: var(--note-top) 0 0 15vw;
-}
-
-.note-built {
-  --tilt: 0.7deg;
-  width: min(30rem, 84vw);
-  align-self: flex-end;
-  margin: 0 0 var(--note-bottom) 16vw;
-}
-
-.note-awards {
-  --tilt: -1.2deg;
-  width: min(28rem, 84vw);
-  margin: var(--note-top) 0 0 14vw;
-}
-
-.note-study {
-  --tilt: 0.6deg;
-  width: min(29rem, 84vw);
-  align-self: flex-end;
-  margin: 0 0 var(--note-bottom) 16vw;
-}
-
-.note-contact {
-  --tilt: -1.3deg;
-  width: min(27rem, 84vw);
-  margin: var(--note-top) 0 0 15vw;
-}
-
-.note .note-kaggle {
-  margin-top: 0.9rem;
-}
-
-/* The three results a visitor in a hurry should still see. */
-.note-highlights {
-  margin: 0.2rem 0 0.9rem;
-  padding-left: 1.15rem;
-}
-
-.note-highlights li {
-  margin-bottom: 0.15rem;
-}
-
-.note-highlights strong {
-  font-weight: 500;
-  color: var(--sky-ink);
-}
-
-/* The section links sit on a strip of the same paper as the notes, so they stay
-   readable over bright clouds and dark sky alike. */
+/* The link back to the portfolio sits on a strip of paper, so it stays readable over bright
+   clouds and dark sky alike. */
 .horizon-nav {
   position: absolute;
   z-index: 3;
@@ -365,18 +109,16 @@ body {
   text-decoration: none;
 }
 
-.horizon-nav a:hover,
-.one-page-nav a:hover {
+.horizon-nav a:focus-visible {
+  outline: 2px solid var(--straw);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.horizon-nav a:hover {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.25em;
-}
-
-/* The links to the plain page and the portfolio are a different kind of link from the
-   sections, so a fold line sets them apart. */
-.horizon-nav .horizon-nav-page {
-  padding-left: 1rem;
-  border-left: 1px solid rgb(13 59 125 / 0.2);
 }
 
 /* The paper boat sails along the bottom to show how far along the walk you are. The painted
@@ -433,134 +175,10 @@ body {
 }
 
 @media (max-width: 640px) {
-  :root {
-    --note-top: 9vh;
-  }
-
-  .note {
-    padding: 1.35rem 1.35rem 1.25rem;
-    font-size: 0.95rem;
-  }
-
-  /* The longest notes must stay clear of the section links on a phone. */
-  .note h3 {
-    margin-top: 0.7rem;
-  }
-
-  .note p {
-    margin-bottom: 0.55rem;
-  }
-
   .horizon-nav {
     right: 50%;
     translate: 50% 0;
-    flex-wrap: nowrap;
-    width: max-content;
-    gap: 0.6rem;
     padding: 0.25rem 0.75rem;
     font-size: 0.88rem;
-  }
-
-  /* The first note is the introduction, so phones skip its link to fit the rest on one line. */
-  .horizon-nav a:first-child {
-    display: none;
-  }
-
-  /* Phones also skip the plain page; the portfolio is the easy read. */
-  .horizon-nav .horizon-nav-page {
-    display: none;
-  }
-
-  .horizon-nav .horizon-nav-home {
-    padding-left: 0.6rem;
-    border-left: 1px solid rgb(13 59 125 / 0.2);
-  }
-}
-
-/* Short screens, such as phones held sideways: tighten the walk and let a long note scroll. */
-@media (max-height: 560px) {
-  :root {
-    --note-top: 3.25rem;
-  }
-
-  .horizon-track .note {
-    max-height: calc(100svh - 4.5rem - var(--boat-width) * 0.6);
-    overflow: auto;
-    padding: 1rem 1.25rem;
-    font-size: 0.88rem;
-  }
-}
-
-/* The plain page: the same notes in one column, with the painting as a still banner. */
-@media (prefers-reduced-motion: no-preference) {
-  html:has(.one-page) {
-    scroll-behavior: smooth;
-  }
-}
-
-.one-page {
-  min-height: 100vh;
-  padding-bottom: 4rem;
-  background: linear-gradient(180deg, #2f74c6 0, #7fb2e4 45vh, #d8e8f6 100%);
-}
-
-.one-page-painting {
-  height: clamp(180px, 36vh, 380px);
-  background: url('./assets/painting.jpg') 32% 50% / cover no-repeat;
-}
-
-.one-page-nav {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  max-width: 46rem;
-  margin: -1.4rem auto 1.75rem;
-  padding: 0 1rem;
-}
-
-.one-page-nav a {
-  padding: 0.3rem 1rem;
-  border-radius: 2px;
-  background: var(--paper);
-  box-shadow:
-    0 12px 26px -18px rgb(8 36 80 / 0.6),
-    0 1px 3px rgb(8 36 80 / 0.15);
-  rotate: -0.6deg;
-  color: var(--sky-ink);
-  font-family: var(--font-hand);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.one-page-notes {
-  display: grid;
-  gap: 1.75rem;
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-.one-page .note {
-  --tilt: 0deg;
-  width: auto;
-  margin: 0;
-}
-
-@media print {
-  .one-page {
-    padding: 0;
-    background: none;
-  }
-
-  .one-page-painting,
-  .one-page-nav {
-    display: none;
-  }
-
-  .one-page .note {
-    padding: 0;
-    background: none;
-    box-shadow: none;
-    break-inside: avoid;
   }
 }
