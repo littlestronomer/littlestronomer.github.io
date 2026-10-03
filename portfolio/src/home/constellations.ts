@@ -1,8 +1,14 @@
+import type { Sight } from './deepSky'
 import type { Look } from './starChart'
 
 // The constellations drawn behind the page. Star positions are right ascension and declination
 // in degrees (J2000). `size` 2 marks the sky's brightest stars, 1 the easy ones, 0 the faint
 // ones; `look` gives the color of the few stars that are clearly orange or yellow.
+//
+// Beside most of them are the galaxies, nebulae and star clusters that stargazers look for
+// there, at their real places. Their positions, sizes and tilts are from the SIMBAD database of
+// the Strasbourg astronomical Data Center. Some belong to a neighboring constellation that is
+// not drawn here: the Andromeda Galaxy, for one, is found by starting from Cassiopeia.
 
 type Star = { ra: number; dec: number; size: number; look?: Look }
 
@@ -20,6 +26,8 @@ export type Constellation = {
   lines: [number, number][]
   /** A few words shown beside the cursor while it is lit. */
   whisper?: string
+  /** The deep-sky objects drawn beside it. */
+  sights?: Sight[]
   /** Puts the name above the stars instead of below them. */
   nameAbove?: boolean
 }
@@ -40,6 +48,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 28.599, dec: 63.67, size: 0 }, // Segin
     ],
     lines: chain(0, 1, 2, 3, 4),
+    sights: [{ tag: 'M31', name: 'Andromeda Galaxy', ra: 10.685, dec: 41.269, shape: 'andromeda' }],
   },
   {
     name: 'CYGNUS',
@@ -54,6 +63,10 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 311.553, dec: 33.97, size: 1 }, // Epsilon Cygni
     ],
     lines: [...chain(0, 1, 2, 3), ...chain(4, 1, 5)],
+    sights: [
+      { tag: 'NGC 7000', name: 'North America Nebula', ra: 314.696, dec: 44.33, shape: 'northAmerica' },
+      { tag: 'VEIL', name: 'Veil Nebula', ra: 312.75, dec: 30.667, shape: 'veil' },
+    ],
   },
   {
     name: 'GEMINI',
@@ -71,6 +84,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 99.428, dec: 16.399, size: 1 }, // Alhena
     ],
     lines: [[0, 1], ...chain(0, 2, 3, 4, 5), ...chain(1, 6, 7, 8)],
+    sights: [{ tag: 'M35', name: 'Open cluster M35', ra: 92.272, dec: 24.336, shape: 'cluster', across: 38 }],
   },
   {
     name: 'LEO',
@@ -88,6 +102,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 177.265, dec: 14.572, size: 1 }, // Denebola
     ],
     lines: [...chain(0, 1, 2, 3, 4, 5), ...chain(2, 6, 8, 7, 0), [6, 7]],
+    sights: [{ tag: 'M66', name: 'Leo Triplet', ra: 170.063, dec: 12.992, shape: 'triplet' }],
   },
   {
     name: 'BOOTES',
@@ -103,6 +118,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 208.671, dec: 18.398, size: 1 }, // Muphrid
     ],
     lines: [...chain(0, 1, 2, 3, 4, 5, 0), [0, 6]],
+    sights: [{ tag: 'M3', name: 'Globular cluster M3', ra: 205.548, dec: 28.377, shape: 'globular' }],
   },
   {
     name: 'TAURUS',
@@ -119,6 +135,10 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 60.17, dec: 12.49, size: 0 }, // Lambda Tauri
     ],
     lines: [...chain(0, 1, 2, 3, 4, 5), [0, 6], [2, 7]],
+    sights: [
+      { tag: 'M45', name: 'The Pleiades', ra: 56.601, dec: 24.114, shape: 'pleiades' },
+      { tag: 'M1', name: 'Crab Nebula', ra: 83.632, dec: 22.017, shape: 'crab' },
+    ],
   },
   {
     name: 'LYRA',
@@ -132,6 +152,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 282.52, dec: 33.363, size: 0 }, // Sheliak
     ],
     lines: chain(0, 1, 2, 3, 4, 1),
+    sights: [{ tag: 'M57', name: 'Ring Nebula', ra: 283.396, dec: 33.029, shape: 'ring' }],
   },
   {
     name: 'CANIS MAJOR',
@@ -146,6 +167,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 111.024, dec: -29.303, size: 1 }, // Aludra
     ],
     lines: [[0, 1], ...chain(0, 2, 3, 4), [3, 5]],
+    sights: [{ tag: 'M41', name: 'Open cluster M41', ra: 101.499, dec: -20.716, shape: 'cluster', across: 40 }],
   },
   {
     name: 'SCORPIUS',
@@ -168,6 +190,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 263.402, dec: -37.104, size: 1 }, // Shaula
     ],
     lines: [[0, 1], [2, 1], ...chain(1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)],
+    sights: [{ tag: 'M4', name: 'Globular cluster M4', ra: 245.897, dec: -26.526, shape: 'globular' }],
   },
   {
     name: 'AQUILA',
@@ -183,6 +206,7 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 286.562, dec: -4.883, size: 0 }, // Lambda Aquilae
     ],
     lines: [...chain(1, 0, 2), [0, 3], [3, 4], [3, 5], [3, 6]],
+    sights: [{ tag: 'M11', name: 'Wild Duck Cluster', ra: 282.766, dec: -6.272, shape: 'cluster', across: 9 }],
   },
   {
     name: 'URSA MINOR',
@@ -214,6 +238,11 @@ export const CONSTELLATIONS: Constellation[] = [
       { ra: 206.885, dec: 49.313, size: 1 }, // Alkaid
     ],
     lines: [...chain(0, 1, 2, 3, 0), ...chain(3, 4, 5, 6)],
+    sights: [
+      { tag: 'M81', name: "Bode's Galaxy and the Cigar Galaxy", ra: 148.888, dec: 69.065, shape: 'bode' },
+      { tag: 'M101', name: 'Pinwheel Galaxy', ra: 210.802, dec: 54.349, shape: 'pinwheel' },
+      { tag: 'M51', name: 'Whirlpool Galaxy', ra: 202.47, dec: 47.195, shape: 'whirlpool' },
+    ],
   },
 ]
 

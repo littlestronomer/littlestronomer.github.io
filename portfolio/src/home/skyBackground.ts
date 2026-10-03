@@ -1,341 +1,41 @@
-import { CONSTELLATIONS, NORTH_UP, WAY_TO_THE_QUEEN, type Constellation } from './constellations'
-import { Pixels, bayer, linePoints, mix, prefersReducedMotion, rgb, type Rgb } from './pixels'
-import { plotStar, plotWord, shineAt, skyMap, wordWidth, type ChartStar, type Plot } from './starChart'
+import { WAY_TO_THE_QUEEN } from './constellations'
+import { Pixels, clearPlot, prefersReducedMotion, type Rgb } from './pixels'
+import { REACH, figureAt, placeFigures, trailThrough, type Box, type Figure, type Trail } from './skyFigures'
+import { INK, paintFar, paintFlags, paintLit, paintMiddle } from './skyPaint'
+import { plotWord, shineAt, type Plot } from './starChart'
+import { drawField, plotField, scatterField, starSheet, type FieldStar } from './starField'
 import { currentTheme, watchTheme } from './theme'
-import { seededRandom } from './tinyNet'
 
-// The sky behind the page: faint stars, a band of Milky Way, and real constellations joined by
-// thin lines. It drifts more slowly than the page scrolls, so the page seems to float in front
-// of it. Under the cursor a constellation shines: a crest of light crosses its lines from the
-// upper left to the lower right, again and again, like a Mexican wave.
+// The sky behind the page: stars, a band of Milky Way, and real constellations joined by thin
+// lines, with the galaxies, nebulae and star clusters that lie beside them. It drifts more
+// slowly than the page scrolls, so the page seems to float in front of it. The sky itself has
+// depth. The Milky Way is the farthest thing in it and barely moves; the constellations move a
+// little; and every loose star has a depth of its own, so the near ones pass the far ones as
+// the page scrolls. Under the cursor a constellation shines: a crest of light crosses its
+// lines from the upper left to the lower right, again and again, like a Mexican wave.
 //
 // The northern constellations share the patch of open sky above the footer, placed around the
 // pole as they really are. Touching Cassiopeia, the Queen, lights the trail stargazers follow
 // to find her: from the Great Bear's pointer stars, through the North Star, and on to her.
 //
-// In the Turkish theme there is no sky at all: the background is a wall of small Turkish flags,
-// laid like bricks, each row half a flag along from the one above.
+// This file fits the sky to the page and answers the cursor. skyFigures.ts works out where
+// everything stands, skyPaint.ts paints it, and starField.ts scatters and draws the loose stars.
 
 /** One sky pixel is this many screen pixels, finer than the header's so the lines stay thin. */
 const SCALE = 2
-/** How far the sky moves for each pixel the page scrolls. */
-const DRIFT = 0.3
+/**
+ * How far the two painted layers of the sky move for each pixel the page scrolls: the Milky
+ * Way, far off, and the constellations. The loose stars each have a drift of their own.
+ */
+const DRIFT = { far: 0.12, middle: 0.3 }
+/** The loose stars are scattered the same way every time. */
+const STAR_SEED = 1054
 /** Sky pixels per degree, the same scale as Orion in the header. */
 const PIXELS_PER_DEGREE = { wide: 5.2, narrow: 3.6 }
-/** How close the cursor must come to a line, in sky pixels, to light it. */
-const REACH = 7
-/** Anywhere inside a constellation's outline lights it too, and this far outside it. */
-const OUTLINE_REACH = 3
-/** Room around a constellation for its stars' arms and its lines' halo. */
-const MARGIN = 5
 const GLOW_IN_MS = 140
 const GLOW_OUT_MS = 420
-const HALO_AROUND = [[1, 0], [-1, 0], [0, 1], [0, -1]]
-/** The size of one small flag in the Turkish theme's wall, in sky pixels. */
-const FLAG = { width: 30, height: 20 }
-
-const INK = {
-  sky: rgb('#100f2b'),
-  haze: rgb('#191642'),
-  stars: ['#2c2969', '#48449a', '#8a86d0', '#d9d6ff'].map(rgb),
-  line: rgb('#35317f'),
-  name: rgb('#443f96'),
-  lit: rgb('#e3f4ff'),
-  halo: rgb('#6fbcff'),
-  litName: rgb('#ffe7a3'),
-}
-
-type Ink = typeof INK
-type Box = { left: number; top: number; right: number; bottom: number }
-type Point = { x: number; y: number }
-
-/** A constellation placed on the sky, in sky pixels. */
-type Figure = {
-  name: string
-  whisper?: string
-  stars: ChartStar[]
-  /** The pixels of each line between two stars. */
-  paths: [number, number][][]
-  /** The same lines as end points, for measuring how close the cursor is. */
-  segments: [ChartStar, ChartStar][]
-  /** The corners of the space the constellation takes up, in order around it. */
-  outline: Point[]
-  box: Box
-  label: Point
-  /** Everything that can light up, with room to spare: the stars, the lines and the name. */
-  frame: Box
-  /** A small canvas of its own, laid over the sky, where its shine is drawn. */
-  pen: CanvasRenderingContext2D | null
-  /** How lit it is now and how lit it should become, from 0 to 1. */
-  glow: number
-  target: number
-  /** When the cursor arrived, which is when the wave of light sets off. */
-  since: number
-  /** Whether its canvas has anything on it. */
-  painted: boolean
-}
-
-/** The dotted trail from the Great Bear through the North Star to the Queen. */
-type Trail = {
-  /** Its pixels in order, from the first pointer star to Cassiopeia. */
-  dots: [number, number][]
-  northStar: Point
-  frame: Box
-  pen: CanvasRenderingContext2D | null
-  painted: boolean
-}
-
-/** The middle of a group of stars on the sky, found by averaging their directions. */
-function middleOf(stars: { ra: number; dec: number }[]) {
-  let x = 0
-  let y = 0
-  let z = 0
-  for (const star of stars) {
-    const ra = (star.ra * Math.PI) / 180
-    const dec = (star.dec * Math.PI) / 180
-    x += Math.cos(dec) * Math.cos(ra)
-    y += Math.cos(dec) * Math.sin(ra)
-    z += Math.sin(dec)
-  }
-  return { ra: (Math.atan2(y, x) * 180) / Math.PI, dec: (Math.atan2(z, Math.hypot(x, y)) * 180) / Math.PI }
-}
-
-/** A constellation on a chart of its own, north up, centred as near (centerX, centerY) as fits. */
-function chartAlone(chart: Constellation, centerX: number, centerY: number, perDegree: number, width: number): Point[] {
-  const middle = middleOf(chart.stars)
-  const map = skyMap(middle.ra, middle.dec)
-  const flat = chart.stars.map((star) => map(star.ra, star.dec))
-  const rights = flat.map((point) => point.right * perDegree)
-  const ups = flat.map((point) => point.up * perDegree)
-  const half = (Math.max(...rights) - Math.min(...rights)) / 2
-  const midRight = (Math.max(...rights) + Math.min(...rights)) / 2
-  const midUp = (Math.max(...ups) + Math.min(...ups)) / 2
-  const x0 = half * 2 + 8 > width ? width / 2 : Math.min(Math.max(centerX, half + 4), width - half - 4)
-  return flat.map((_, i) => ({ x: x0 + rights[i] - midRight, y: centerY - (ups[i] - midUp) }))
-}
-
-/**
- * The northern constellations on one chart around the pole, as they stand when you face north:
- * each star sits as many degrees from the pole as its declination is short of 90, turned by its
- * right ascension. The chart is centred on (centerX, centerY) and shrunk to fit the room.
- */
-function chartNorth(charts: Constellation[], centerX: number, centerY: number, perDegree: number, room: Point) {
-  const flat = charts.map((chart) =>
-    chart.stars.map((star) => {
-      const fromPole = 90 - star.dec
-      const turn = ((star.ra - NORTH_UP) * Math.PI) / 180
-      return { x: fromPole * Math.sin(turn), y: -fromPole * Math.cos(turn) }
-    }),
-  )
-  const all = flat.flat()
-  const left = Math.min(...all.map((point) => point.x))
-  const right = Math.max(...all.map((point) => point.x))
-  const top = Math.min(...all.map((point) => point.y))
-  const bottom = Math.max(...all.map((point) => point.y))
-  const scale = Math.min(perDegree, room.x / (right - left), room.y / (bottom - top))
-  return flat.map((points) =>
-    points.map((point) => ({
-      x: centerX + (point.x - (left + right) / 2) * scale,
-      y: centerY + (point.y - (top + bottom) / 2) * scale,
-    })),
-  )
-}
-
-/**
- * The outline of a group of points: the corners of the smallest shape without dents that holds
- * them all, in order around it.
- */
-function outlineOf(points: Point[]) {
-  const sorted = [...points].sort((a, b) => a.x - b.x || a.y - b.y)
-  const bends = (o: Point, a: Point, b: Point) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
-  /** One side of the outline, walked from end to end, dropping every point that would dent it. */
-  const side = (walk: Point[]) => {
-    const kept: Point[] = []
-    for (const point of walk) {
-      while (kept.length >= 2 && bends(kept[kept.length - 2], kept[kept.length - 1], point) <= 0) kept.pop()
-      kept.push(point)
-    }
-    return kept.slice(0, -1)
-  }
-  return [...side(sorted), ...side(sorted.reverse())]
-}
-
-/** Whether a point is inside an outline, or no more than `reach` outside it. */
-function insideOutline(outline: Point[], x: number, y: number, reach: number) {
-  // Stars in a row enclose no space at all.
-  if (outline.length < 3) return false
-  return outline.every((a, i) => {
-    const b = outline[(i + 1) % outline.length]
-    const along = Math.hypot(b.x - a.x, b.y - a.y)
-    return ((b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x)) / along >= -reach
-  })
-}
-
-/** Turns a constellation and the places of its stars into lines, a name and a frame. */
-function figureFrom(chart: Constellation, points: Point[], width: number): Figure {
-  const stars = chart.stars.map((star, i) => ({
-    x: Math.round(points[i].x),
-    y: Math.round(points[i].y),
-    size: star.size,
-    look: star.look ?? 'blue',
-  }))
-  const segments = chart.lines.map(([from, to]): [ChartStar, ChartStar] => [stars[from], stars[to]])
-  // Lines stop just short of the stars they join, so the stars stay crisp.
-  const paths = segments.map(([from, to]) => {
-    const pixels = linePoints(from.x, from.y, to.x, to.y)
-    return pixels.length > 6 ? pixels.slice(2, -2) : pixels.slice(1, -1)
-  })
-  const box = {
-    left: Math.min(...stars.map((star) => star.x)) - 3,
-    top: Math.min(...stars.map((star) => star.y)) - 3,
-    right: Math.max(...stars.map((star) => star.x)) + 3,
-    bottom: Math.max(...stars.map((star) => star.y)) + 3,
-  }
-  const labelWidth = wordWidth(chart.name)
-  const label = {
-    x: Math.round(Math.min(Math.max((box.left + box.right - labelWidth) / 2, 2), width - labelWidth - 2)),
-    y: chart.nameAbove ? box.top - 9 : box.bottom + 4,
-  }
-  const frame = {
-    left: Math.min(box.left, label.x) - MARGIN,
-    top: Math.min(box.top, label.y) - MARGIN,
-    right: Math.max(box.right, label.x + labelWidth) + MARGIN,
-    bottom: Math.max(box.bottom, label.y + 5) + MARGIN,
-  }
-  return {
-    name: chart.name,
-    whisper: chart.whisper,
-    stars,
-    paths,
-    segments,
-    outline: outlineOf(stars),
-    box,
-    label,
-    frame,
-    pen: null,
-    glow: 0,
-    target: 0,
-    since: 0,
-    painted: false,
-  }
-}
-
-/** The dotted trail to the Queen, through the stars named in WAY_TO_THE_QUEEN. */
-function trailThrough(figures: Figure[]): Trail | null {
-  const stops = WAY_TO_THE_QUEEN.map((step) => figures.find((figure) => figure.name === step.name)?.stars[step.star])
-  if (stops.some((stop) => !stop)) return null
-  const stars = stops as ChartStar[]
-  const dots: [number, number][] = []
-  for (let leg = 1; leg < stars.length; leg++) {
-    const pixels = linePoints(stars[leg - 1].x, stars[leg - 1].y, stars[leg].x, stars[leg].y).slice(4, -4)
-    // Two pixels on, three off.
-    pixels.forEach((pixel, i) => i % 5 < 2 && dots.push(pixel))
-  }
-  const northStar = stars[2]
-  const xs = [...dots.map((dot) => dot[0]), northStar.x + 2, northStar.x + 2 + wordWidth('POLARIS')]
-  const ys = [...dots.map((dot) => dot[1]), northStar.y - 11]
-  const frame = {
-    left: Math.min(...xs) - MARGIN,
-    top: Math.min(...ys) - MARGIN,
-    right: Math.max(...xs) + MARGIN,
-    bottom: Math.max(...ys) + MARGIN,
-  }
-  return { dots, northStar, frame, pen: null, painted: false }
-}
-
-function distanceToSegment(x: number, y: number, [a, b]: [ChartStar, ChartStar]) {
-  const dx = b.x - a.x
-  const dy = b.y - a.y
-  const along = Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / (dx * dx + dy * dy || 1)))
-  return Math.hypot(x - (a.x + dx * along), y - (a.y + dy * along))
-}
-
-/** The still part of the sky: night, Milky Way haze, stars and the constellations at rest. */
-function paintSky(width: number, height: number, figures: Figure[], ink: Ink) {
-  const random = seededRandom(2026)
-  const sky = new Pixels(width, height)
-  const data = sky.image.data
-  const hazed = mix(ink.sky, ink.haze, 0.75)
-
-  // The Milky Way runs from the upper right to the lower left as a dithered band.
-  const bandMiddle = (y: number) => width * (0.88 - (0.76 * y) / height)
-  const bandHalf = Math.max(34, width * 0.15)
-  for (let y = 0; y < height; y++) {
-    const middle = bandMiddle(y)
-    for (let x = 0; x < width; x++) {
-      const strength = 0.7 * (1 - Math.abs(x - middle) / bandHalf)
-      const color = strength > bayer(x, y) ? hazed : ink.sky
-      const k = (y * width + x) * 4
-      data[k] = color[0]
-      data[k + 1] = color[1]
-      data[k + 2] = color[2]
-      data[k + 3] = 255
-    }
-  }
-
-  // Stars everywhere, and more of them along the Milky Way.
-  const scatter = (count: number, x: (y: number) => number) => {
-    for (let i = 0; i < count; i++) {
-      const y = Math.floor(random() * height)
-      const roll = random()
-      sky.set(x(y), y, ink.stars[roll < 0.6 ? 0 : roll < 0.88 ? 1 : roll < 0.98 ? 2 : 3])
-    }
-  }
-  scatter(Math.round((width * height) / 130), () => Math.floor(random() * width))
-  scatter(Math.round((width * height) / 260), (y) => bandMiddle(y) + (random() + random() - 1) * bandHalf)
-
-  const plot: Plot = (x, y, color, alpha = 1) => sky.set(x, y, color, alpha)
-  for (const figure of figures) {
-    for (const path of figure.paths) for (const [x, y] of path) plot(x, y, ink.line)
-    for (const star of figure.stars) plotStar(plot, star)
-    plotWord(plot, figure.name, figure.label.x, figure.label.y, ink.name)
-  }
-  return sky
-}
-
-/** One small Turkish flag, with a thin dark seam on its right and bottom. */
-function smallFlag() {
-  const { width, height } = FLAG
-  const red = rgb('#e30a17')
-  const seam = rgb('#a8080f')
-  const white = rgb('#ffffff')
-  const flag = new Pixels(width, height)
-  // The crescent is what is left of one disc when a smaller one, set toward the star, is taken
-  // out of it. Each pixel is white if most of it lies inside.
-  const inCrescent = (x: number, y: number) => Math.hypot(x - 10, y - 10) <= 5 && Math.hypot(x - 11.25, y - 10) > 4
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let inside = 0
-      for (let i = 0; i < 16; i++) inside += inCrescent(x + ((i % 4) + 0.5) / 4, y + (Math.floor(i / 4) + 0.5) / 4) ? 1 : 0
-      flag.set(x, y, inside >= 8 ? white : x === width - 1 || y === height - 1 ? seam : red)
-    }
-  }
-  // At this size the star is a small cross.
-  for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, 2], [0, -2]]) {
-    flag.set(16 + dx, 10 + dy, white)
-  }
-  return flag
-}
-
-/** The Turkish theme's background: small flags laid like bricks, every other row half a flag along. */
-function paintFlags(width: number, height: number) {
-  const flag = smallFlag()
-  const wall = new Pixels(width, height)
-  const from = flag.image.data
-  const to = wall.image.data
-  for (let y = 0; y < height; y++) {
-    const along = Math.floor(y / flag.height) % 2 === 0 ? 0 : flag.width / 2
-    for (let x = 0; x < width; x++) {
-      const source = ((y % flag.height) * flag.width + ((x + along) % flag.width)) * 4
-      const target = (y * width + x) * 4
-      to[target] = from[source]
-      to[target + 1] = from[source + 1]
-      to[target + 2] = from[source + 2]
-      to[target + 3] = 255
-    }
-  }
-  return wall
-}
+/** The constellation the trail of light leads to. */
+const QUEEN = WAY_TO_THE_QUEEN[WAY_TO_THE_QUEEN.length - 1].name
 
 // Canvas colors as text, made once for each color.
 const inks = new Map<Rgb, string>()
@@ -346,6 +46,11 @@ function css(color: Rgb) {
 }
 
 type Layers = {
+  /** The canvas behind everything else: the Milky Way and the faintest stars. */
+  far: HTMLCanvasElement
+  /** Two canvases the size of the window, for the loose stars farther than the constellations and nearer. */
+  behind: HTMLCanvasElement
+  near: HTMLCanvasElement
   /** The layer that holds each constellation's small canvas of shine. */
   lit: HTMLElement
   /** The little label that follows the cursor. */
@@ -353,10 +58,11 @@ type Layers = {
 }
 
 /**
- * Draws the sky into `still`, and each constellation's shine into a small canvas of its own
- * inside the lit layer. Returns a function that stops it.
+ * Draws the constellations into `still`, the Milky Way into the far canvas, the loose stars
+ * into the two canvases behind and in front of the constellations, and each constellation's
+ * shine into a small canvas of its own inside the lit layer. Returns a function that stops it.
  */
-export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: Layers) {
+export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near, lit, whisper }: Layers) {
   const holder = still.parentElement
   const page = document.querySelector<HTMLElement>('.home')
   if (!holder || !page) return () => {}
@@ -366,14 +72,23 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
   // constellation glows evenly instead of in a wave.
   holder.classList.toggle('is-fastened', !moving)
 
-  const ink = INK
   let figures: Figure[] = []
   let trail: Trail | null = null
   let queen: Figure | undefined
   let built = ''
-  /** How far the sky has slid up behind the window, in screen pixels. */
+  /** How far the constellations have slid up behind the window, in screen pixels. */
   let slid = 0
+  /** How far each painted layer slides for each pixel the page scrolls. */
   let slide = 0
+  let farSlide = 0
+  /**
+   * The loose stars, with the canvas each lot is drawn on: those behind the constellations and
+   * those in front. There are none here under the flags, or when the sky is fastened to the page.
+   */
+  let loose: { canvas: HTMLCanvasElement; stars: FieldStar[] }[] = []
+  /** The pictures of the stars, kept on a canvas so that they can be stamped. */
+  const sheet = document.createElement('canvas')
+  starSheet().show(sheet)
   let pointer: { x: number; y: number; mouse: boolean } | null = null
   let frame = 0
   let lastFrame = 0
@@ -398,12 +113,16 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
     const windowHeight = window.innerHeight
     const pageBox = page.getBoundingClientRect()
     const pageHeight = Math.max(windowHeight, Math.ceil(pageBox.bottom + window.scrollY))
-    const skyHeight = moving ? Math.round(windowHeight + DRIFT * (pageHeight - windowHeight)) : pageHeight
+    // A layer is as tall as the window plus however far it will slide by the end of the page.
+    const travel = Math.max(1, pageHeight - windowHeight)
+    const tall = (drift: number) => (moving ? Math.round(windowHeight + drift * (pageHeight - windowHeight)) : pageHeight)
+    const skyHeight = tall(DRIFT.middle)
     const key = `${width}×${windowHeight}×${pageHeight}×${currentTheme()}`
     if (key === built) return
     built = key
     const flags = currentTheme() === 'turk'
-    slide = (skyHeight - windowHeight) / Math.max(1, pageHeight - windowHeight)
+    slide = (skyHeight - windowHeight) / travel
+    farSlide = (tall(DRIFT.far) - windowHeight) / travel
 
     const columns = Math.ceil(width / SCALE)
     const rows = Math.ceil(skyHeight / SCALE)
@@ -424,29 +143,63 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
     const patchHeight = patch ? patch.height : 190
     const patchFromEnd = patch ? pageHeight - ((patch.top + patch.bottom) / 2 + window.scrollY) : 160
     const patchWidth = Math.min(width, pageBox.width) - 40
-    const northern = CONSTELLATIONS.filter((chart) => chart.lane === 'north')
-    const north = chartNorth(northern, width / 2 / SCALE, (skyHeight - patchFromEnd) / SCALE, perDegree, {
-      x: patchWidth / SCALE,
-      y: (patchHeight - 56) / SCALE,
-    })
 
     // Under the flags there are no constellations to touch.
     figures = flags
       ? []
-      : CONSTELLATIONS.map((chart) => {
-          const points =
-            chart.lane === 'north'
-              ? north[northern.indexOf(chart)]
-              : chartAlone(chart, lanes[chart.lane] / SCALE, (skyHeight * chart.down) / SCALE, perDegree, columns)
-          return figureFrom(chart, points, columns)
+      : placeFigures({
+          width: columns,
+          height: rows,
+          perDegree,
+          lanes: { left: lanes.left / SCALE, right: lanes.right / SCALE, side: lanes.side / SCALE },
+          north: {
+            x: width / 2 / SCALE,
+            y: (skyHeight - patchFromEnd) / SCALE,
+            width: patchWidth / SCALE,
+            height: (patchHeight - 56) / SCALE,
+          },
         })
-    queen = figures.find((figure) => figure.name === WAY_TO_THE_QUEEN[WAY_TO_THE_QUEEN.length - 1].name)
+    queen = figures.find((figure) => figure.name === QUEEN)
     trail = trailThrough(figures)
 
-    const picture = flags ? paintFlags(columns, rows) : paintSky(columns, rows, figures, ink)
-    picture.show(still)
-    still.style.width = `${columns * SCALE}px`
-    still.style.height = `${rows * SCALE}px`
+    /** Puts a painted layer on its canvas, or puts the canvas away when there is nothing for it. */
+    const show = (canvas: HTMLCanvasElement, picture: Pixels | null) => {
+      canvas.style.display = picture ? '' : 'none'
+      if (!picture) return
+      picture.show(canvas)
+      canvas.style.width = `${picture.width * SCALE}px`
+      canvas.style.height = `${picture.height * SCALE}px`
+    }
+    loose = []
+    if (flags) {
+      show(still, paintFlags(columns, rows))
+      show(far, null)
+    } else if (moving) {
+      // The Milky Way and the constellations are painted once, and each slides at its own pace.
+      const middle = new Pixels(columns, rows)
+      paintMiddle(clearPlot(middle), figures)
+      show(far, paintFar(columns, Math.ceil(tall(DRIFT.far) / SCALE)))
+      show(still, middle)
+      // The loose stars are drawn again at every scroll, each where its own depth puts it.
+      const stars = scatterField(columns, Math.ceil(windowHeight / SCALE), (drift) => tall(drift) / SCALE, STAR_SEED)
+      loose = [
+        { canvas: behind, stars: stars.filter((star) => star.drift < DRIFT.middle) },
+        { canvas: near, stars: stars.filter((star) => star.drift >= DRIFT.middle) },
+      ]
+    } else {
+      // Fastened to the page there is no depth to show, so everything is painted on one layer.
+      const sky = paintFar(columns, rows)
+      const plot: Plot = (x, y, color, alpha = 1) => sky.set(x, y, color, alpha)
+      plotField(plot, scatterField(columns, rows, () => rows, STAR_SEED))
+      paintMiddle(plot, figures)
+      show(still, sky)
+      show(far, null)
+    }
+    for (const canvas of [behind, near]) {
+      canvas.style.display = loose.length ? '' : 'none'
+      canvas.width = width
+      canvas.height = windowHeight
+    }
 
     lit.replaceChildren()
     for (const figure of figures) figure.pen = canvasOver(figure.frame)
@@ -462,7 +215,14 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
   /** Slides the sky to match the scroll position, then checks what the cursor now rests on. */
   const follow = () => {
     slid = moving ? Math.round(window.scrollY * slide) : window.scrollY
-    if (moving) for (const layer of [still, lit]) layer.style.transform = `translate3d(0, ${-slid}px, 0)`
+    if (moving) {
+      for (const layer of [still, lit]) layer.style.transform = `translate3d(0, ${-slid}px, 0)`
+      far.style.transform = `translate3d(0, ${-Math.round(window.scrollY * farSlide)}px, 0)`
+    }
+    for (const { canvas, stars } of loose) {
+      const pen = canvas.getContext('2d')
+      if (pen) drawField(pen, sheet, stars, SCALE, window.scrollY)
+    }
     if (pointer?.mouse) touch()
   }
 
@@ -483,13 +243,7 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
       pen.fillStyle = css(color)
       pen.fillRect(x - bounds.left, y - bounds.top, 1, 1)
     }
-    // A halo around each line, then the bright line itself, the stars and the name.
-    for (const path of figure.paths) {
-      for (const [x, y] of path) for (const [dx, dy] of HALO_AROUND) plot(x + dx, y + dy, ink.halo, 0.3)
-    }
-    for (const path of figure.paths) for (const [x, y] of path) plot(x, y, ink.lit)
-    for (const star of figure.stars) plotStar(plot, star, ink.lit)
-    plotWord(plot, figure.name, figure.label.x, figure.label.y, ink.litName)
+    paintLit(plot, figure)
   }
 
   /** Draws the trail to the Queen: the light runs along it from the Great Bear to her. */
@@ -502,7 +256,7 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
     if (!trail.painted) return
     const elapsed = now - lady.since
     const level = (along: number) => lady.glow * (moving ? shineAt(along, elapsed) : 1)
-    pen.fillStyle = css(ink.litName)
+    pen.fillStyle = css(INK.litName)
     dots.forEach(([x, y], i) => {
       pen.globalAlpha = level(i / dots.length)
       pen.fillRect(x - bounds.left, y - bounds.top, 1, 1)
@@ -512,7 +266,7 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
       pen.fillStyle = css(color)
       pen.fillRect(x - bounds.left, y - bounds.top, 1, 1)
     }
-    plotWord(plot, 'POLARIS', northStar.x + 3, northStar.y - 9, ink.litName)
+    plotWord(plot, 'POLARIS', northStar.x + 3, northStar.y - 9, INK.litName)
   }
 
   /** Fades constellations in and out and keeps the wave moving through the lit ones. */
@@ -534,14 +288,29 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
     if (!busy) lastFrame = 0
   }
 
-  /** Shows a constellation's few words beside the cursor, or puts them away. */
-  const say = (figure: Figure | null) => {
+  /**
+   * Whether the sky can be seen at a place in the window. Beside the page it always can. Inside
+   * the page it can where nothing under the cursor, from the element there up to the page
+   * itself, is a picture or has a background of its own.
+   */
+  const skyShowsAt = (x: number, y: number) => {
+    for (let element = document.elementFromPoint(x, y); element && element !== page; element = element.parentElement) {
+      if (!page.contains(element)) return true
+      if (element instanceof HTMLCanvasElement || element instanceof HTMLImageElement) return false
+      const style = getComputedStyle(element)
+      if (style.backgroundImage !== 'none' || !/\(0, 0, 0, 0\)|transparent/.test(style.backgroundColor)) return false
+    }
+    return true
+  }
+
+  /** Shows a few words beside the cursor, or puts them away. They are not shown over the page's own boxes. */
+  const say = (words: string | undefined) => {
     if (!whisper) return
-    if (!figure?.whisper || !pointer) {
+    if (!words || !pointer || !skyShowsAt(pointer.x, pointer.y)) {
       whisper.hidden = true
       return
     }
-    whisper.textContent = figure.whisper
+    whisper.textContent = words
     whisper.hidden = false
     // Below and to the right of the cursor, unless that would leave the window.
     const { offsetWidth, offsetHeight } = whisper
@@ -552,36 +321,21 @@ export function startSkyBackground(still: HTMLCanvasElement, { lit, whisper }: L
 
   /** Lights the constellation the cursor is on, and lets the others go dark. */
   const touch = () => {
-    let nearest: Figure | null = null
-    if (pointer) {
-      const x = pointer.x / SCALE
-      const y = (pointer.y + slid) / SCALE
-      // A finger is less exact than a mouse, so it reaches a little farther.
-      const reach = pointer.mouse ? REACH : REACH * 1.6
-      let best = Infinity
-      for (const figure of figures) {
-        const { box } = figure
-        if (x < box.left - reach || x > box.right + reach || y < box.top - reach || y > box.bottom + reach) continue
-        let distance = Math.min(...figure.segments.map((segment) => distanceToSegment(x, y, segment)))
-        // The space between its lines belongs to the constellation too, so the cursor can rest
-        // anywhere inside it. A line right under the cursor still counts for more.
-        if (distance >= reach) distance = insideOutline(figure.outline, x, y, OUTLINE_REACH) ? reach : Infinity
-        if (distance < best) {
-          best = distance
-          nearest = figure
-        }
-      }
-    }
+    // A finger is less exact than a mouse, so it reaches a little farther.
+    const touched = pointer
+      ? figureAt(figures, pointer.x / SCALE, (pointer.y + slid) / SCALE, pointer.mouse ? REACH : REACH * 1.6)
+      : null
     let changed = false
     for (const figure of figures) {
-      const target = figure === nearest ? 1 : 0
+      const target = figure === touched?.figure ? 1 : 0
       if (target === figure.target) continue
       changed = true
       figure.target = target
       // The wave sets off from the upper left the moment the cursor arrives.
       if (target) figure.since = performance.now()
     }
-    say(nearest)
+    // On a galaxy, a nebula or a cluster the words are its name; elsewhere, the constellation's own.
+    say(touched?.sight ? touched.sight.sight.name : touched?.figure.whisper)
     if (changed && !frame) frame = requestAnimationFrame(shine)
   }
 

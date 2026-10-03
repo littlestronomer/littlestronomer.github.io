@@ -34,7 +34,7 @@ export function plotStar(plot: Plot, star: ChartStar, glow: Rgb | null = null) {
   for (const [dx, dy] of DIAGONAL) plot(star.x + dx, star.y + dy, arm, 0.3)
 }
 
-// A tiny pixel font for chart labels: capitals, five pixels tall.
+// A tiny pixel font for chart labels: capitals and digits, five pixels tall.
 const GLYPHS: Record<string, string[]> = {
   A: ['.#.', '#.#', '###', '#.#', '#.#'],
   B: ['##.', '#.#', '##.', '#.#', '##.'],
@@ -62,6 +62,16 @@ const GLYPHS: Record<string, string[]> = {
   X: ['#.#', '#.#', '.#.', '#.#', '#.#'],
   Y: ['#.#', '#.#', '.#.', '.#.', '.#.'],
   Z: ['###', '..#', '.#.', '#..', '###'],
+  0: ['###', '#.#', '#.#', '#.#', '###'],
+  1: ['.#.', '##.', '.#.', '.#.', '###'],
+  2: ['##.', '..#', '.#.', '#..', '###'],
+  3: ['##.', '..#', '.#.', '..#', '##.'],
+  4: ['#.#', '#.#', '###', '..#', '..#'],
+  5: ['###', '#..', '##.', '..#', '##.'],
+  6: ['.##', '#..', '###', '#.#', '###'],
+  7: ['###', '..#', '.#.', '.#.', '.#.'],
+  8: ['###', '#.#', '###', '#.#', '###'],
+  9: ['###', '#.#', '###', '..#', '##.'],
   ' ': ['..', '..', '..', '..', '..'],
 }
 
