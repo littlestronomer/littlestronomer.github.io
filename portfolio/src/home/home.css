@@ -101,6 +101,20 @@ html {
   }
 }
 
+/* Changing between the night sky and the flag (see themeShift.ts). The browser lays the page as
+   it now is over a picture of the page as it was. Both are shown whole, with no fade, and a
+   patch of pixels spreading from the top left corner decides which of them is seen. */
+html.theme-wipe::view-transition-old(root),
+html.theme-wipe::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Until the spreading starts, nothing of the new page shows. */
+html.theme-wipe::view-transition-new(root) {
+  clip-path: inset(100%);
+}
+
 body {
   margin: 0;
   color: var(--text);

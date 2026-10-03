@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import {
   AwardsNote,
   BuiltNote,
@@ -15,6 +16,7 @@ import BattleMap from './BattleMap'
 import Masthead from './Masthead'
 import SkyBackground from './SkyBackground'
 import { setTheme } from './theme'
+import { shiftTheme } from './themeShift'
 import TinyNet from './TinyNet'
 import { TurkHello, TurkNotes, TurkSide } from './TurkishNotes'
 
@@ -155,8 +157,9 @@ export default function HomePage() {
   useLayoutEffect(() => {
     setTheme(turkish ? 'turk' : 'night')
     // The two versions are different pages in all but name, so each one starts from its top.
-    // The jump is made once the new page is in place, and again on the next frame in case a
-    // smooth scroll was still under way and carried the page on.
+    // The change itself glides there first (see switchTo); this jump is for when it could not.
+    // It is made once the new page is in place, and again on the next frame in case a smooth
+    // scroll was still under way and carried the page on.
     const toTop = () => window.scrollTo({ top: 0, behavior: 'instant' })
     let again = 0
     if (shown.current !== turkish) {
@@ -169,13 +172,25 @@ export default function HomePage() {
       setTheme('night')
     }
   }, [turkish])
-  const turkishSwitch = () => <TurkishSwitch on={turkish} onToggle={() => setTurkish(!turkish)} />
+  // The page glides to its top and the new theme spreads over the old one, pixel by pixel.
+  // While that plays, further clicks wait their turn.
+  const shifting = useRef(false)
+  const switchTo = async (next: boolean) => {
+    if (shifting.current) return
+    shifting.current = true
+    try {
+      await shiftTheme(() => flushSync(() => setTurkish(next)))
+    } finally {
+      shifting.current = false
+    }
+  }
+  const turkishSwitch = () => <TurkishSwitch on={turkish} onToggle={() => switchTo(!turkish)} />
   const tabs = turkish ? TURKISH_TABS : TABS
   const current = useCurrentNote(tabs)
 
   return (
     <div className="home">
-      {turkish && <TurkishBanner onClose={() => setTurkish(false)} />}
+      {turkish && <TurkishBanner onClose={() => switchTo(false)} />}
       <SkyBackground />
       <Masthead turkish={turkish} />
 
@@ -189,7 +204,7 @@ export default function HomePage() {
 
       {turkish ? (
         <main className="home-body">
-          <TurkHello onLeave={() => setTurkish(false)} />
+          <TurkHello onLeave={() => switchTo(false)} />
           <BattleMap />
           <div className="home-notes">
             <TurkNotes />
@@ -286,8 +301,7 @@ export default function HomePage() {
         ) : (
           <p>
             Göktürk Batın Dervişoğlu, 2026. The network at the top trains on your own device, and the
-            constellations behind the page light up when you touch their lines.{' '}
-            <a href="https://github.com/littlestronomer/littlestronomer.github.io">This site&apos;s code</a>
+            constellations behind the page light up when you touch them.
           </p>
         )}
       </footer>
