@@ -14,7 +14,7 @@ import { seededRandom } from './tinyNet'
 // to find her: from the Great Bear's pointer stars, through the North Star, and on to her.
 //
 // In the Turkish theme there is no sky at all: the background is a wall of small Turkish flags,
-// side by side and row on row.
+// laid like bricks, each row half a flag along from the one above.
 
 /** One sky pixel is this many screen pixels, finer than the header's so the lines stay thin. */
 const SCALE = 2
@@ -31,6 +31,8 @@ const MARGIN = 5
 const GLOW_IN_MS = 140
 const GLOW_OUT_MS = 420
 const HALO_AROUND = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+/** The size of one small flag in the Turkish theme's wall, in sky pixels. */
+const FLAG = { width: 30, height: 20 }
 
 const INK = {
   sky: rgb('#100f2b'),
@@ -291,10 +293,9 @@ function paintSky(width: number, height: number, figures: Figure[], ink: Ink) {
   return sky
 }
 
-/** One small Turkish flag, 30 sky pixels by 20, with a thin dark seam on its right and bottom. */
+/** One small Turkish flag, with a thin dark seam on its right and bottom. */
 function smallFlag() {
-  const width = 30
-  const height = 20
+  const { width, height } = FLAG
   const red = rgb('#e30a17')
   const seam = rgb('#a8080f')
   const white = rgb('#ffffff')
@@ -316,15 +317,16 @@ function smallFlag() {
   return flag
 }
 
-/** The Turkish theme's background: small flags side by side and row on row. */
+/** The Turkish theme's background: small flags laid like bricks, every other row half a flag along. */
 function paintFlags(width: number, height: number) {
   const flag = smallFlag()
   const wall = new Pixels(width, height)
   const from = flag.image.data
   const to = wall.image.data
   for (let y = 0; y < height; y++) {
+    const along = Math.floor(y / flag.height) % 2 === 0 ? 0 : flag.width / 2
     for (let x = 0; x < width; x++) {
-      const source = ((y % flag.height) * flag.width + (x % flag.width)) * 4
+      const source = ((y % flag.height) * flag.width + ((x + along) % flag.width)) * 4
       const target = (y * width + x) * 4
       to[target] = from[source]
       to[target + 1] = from[source + 1]

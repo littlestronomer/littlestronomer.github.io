@@ -55,6 +55,19 @@ const BUTTONS = [
   { file: 'no-cookies.png', alt: 'No cookies here' },
 ]
 
+// In the Turkish theme the strip is about tea, cats and the evil eye instead. These carry
+// Turkish words, so each says what it means when the cursor rests on it.
+const TURKISH_BUTTONS = [
+  { file: 'turkey-mentioned.png', alt: 'Turkey mentioned' },
+  { file: 'powered-by-cay.png', alt: 'Powered by çay (tea)' },
+  { file: 'nazar.png', alt: 'Nazar değmesin: may the evil eye not touch you' },
+  { file: 'street-cat.png', alt: 'Approved by street cats' },
+  { file: 'kahve.png', alt: 'A proverb: one cup of coffee is remembered for forty years' },
+  { file: 'simit.png', alt: 'Taze simit: fresh sesame rings' },
+  { file: 'tavla.png', alt: 'Şeş beş: a six and a five at tavla (backgammon)' },
+  { file: 'trabzon.png', alt: 'Made in Trabzon' },
+]
+
 const MY_BUTTON = `${SITE_URL}buttons/littlestronomer.png`
 const LINK_CODE = `<a href="${SITE_URL}"><img src="${MY_BUTTON}" width="88" height="31" alt="littlestronomer"></a>`
 
@@ -105,7 +118,7 @@ function TurkishBanner({ onClose }: { onClose: () => void }) {
     <div className="turk-banner">
       <p className="turk-shout" role="status">
         <span className="visually-hidden">
-          Turkish mentioned. The site is now in the colors of the Turkish flag, and about Turkish food, customs
+          Turkey mentioned. The site is now in the colors of the Turkish flag, and about Turkish food, customs
           and history.
         </span>
         {/* The shout is written twice so it can loop without a gap. */}
@@ -113,7 +126,7 @@ function TurkishBanner({ onClose }: { onClose: () => void }) {
           {[0, 1].map((copy) => (
             <span key={copy}>
               {Array.from({ length: 6 }, (_, i) => (
-                <span key={i}>cCc TURKISH MENTIONED cCc</span>
+                <span key={i}>cCc TURKEY MENTIONED cCc</span>
               ))}
             </span>
           ))}
@@ -281,7 +294,7 @@ export default function HomePage() {
               hidden from screen readers. */}
           <ul className="button-wall" aria-label="Buttons">
             {[false, true].flatMap((copy) =>
-              BUTTONS.map((button) => (
+              (turkish ? TURKISH_BUTTONS : BUTTONS).map((button) => (
                 <li key={`${button.file}${copy ? '-copy' : ''}`} aria-hidden={copy || undefined}>
                   <img
                     className="pixel-button"
@@ -289,6 +302,7 @@ export default function HomePage() {
                     width={88}
                     height={31}
                     alt={copy ? '' : button.alt}
+                    title={turkish ? button.alt : undefined}
                     loading="lazy"
                   />
                 </li>
