@@ -32,6 +32,13 @@
   --sparkle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffe7a3' d='M3 0h1v2H3zM3 5h1v2H3zM0 3h2v1H0zM5 3h2v1H5zM2 2h3v3H2z'/%3E%3Cpath fill='%23fff' d='M3 3h1v1H3z'/%3E%3C/svg%3E");
   --neuron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 5' shape-rendering='crispEdges'%3E%3Cpath fill='%234aa8ff' d='M1 0h3v1H1zM0 1h5v3H0zM1 4h3v1H1z'/%3E%3Cpath fill='%23bfe6ff' d='M1 1h2v1H1z'/%3E%3C/svg%3E");
   --bullet: var(--sparkle);
+  /* The mouse cursors, in pixels like everything else (scripts/make_pixel_assets.py draws them).
+     Each names the picture as an SVG, the same picture as a PNG for a browser that will not
+     take an SVG cursor, the point of the picture that does the pointing, and the system's own
+     cursor in case neither loads. */
+  --cursor-arrow: url('./assets/cursor-arrow.svg') 0 0, url('./assets/cursor-arrow.png') 0 0, auto;
+  --cursor-hand: url('./assets/cursor-hand.svg') 7 1, url('./assets/cursor-hand.png') 7 1, pointer;
+  --cursor-text: url('./assets/cursor-text.svg') 7 13, url('./assets/cursor-text.png') 7 13, text;
 }
 
 /* The Turkish theme, switched on by clicking "Turkish" among my languages: the red and white of
@@ -93,6 +100,41 @@
 html {
   background: var(--night) url('./assets/stars-tile.png') 0 0 / 192px 192px repeat;
   image-rendering: pixelated;
+  cursor: var(--cursor-arrow);
+}
+
+/* The cursor is an arrow, a pointing hand over whatever can be clicked, and a bar over text
+   that can be selected. Text inside a link or a button belongs to the link or the button. */
+a,
+button,
+summary,
+label,
+select {
+  cursor: var(--cursor-hand);
+}
+
+button:disabled {
+  cursor: var(--cursor-arrow);
+}
+
+p,
+li,
+dt,
+dd,
+h1,
+h2,
+h3,
+h4,
+pre,
+code,
+blockquote,
+input,
+textarea {
+  cursor: var(--cursor-text);
+}
+
+:is(a, button, summary, label) * {
+  cursor: inherit;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -240,7 +282,7 @@ a:hover {
   text-decoration: underline dotted;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
 }
 
 .word-switch:hover {
@@ -306,7 +348,7 @@ a:hover {
   color: #fff;
   font-family: var(--font-pixel);
   font-size: 0.92rem;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
   box-shadow:
     0 -2px 0 0 #6a040b,
     0 2px 0 0 #6a040b,
@@ -363,7 +405,7 @@ a:hover {
   padding: 0;
   border: 0;
   background: none;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
 }
 
 .sky-spot:focus-visible {
@@ -743,7 +785,7 @@ a:hover {
   color: var(--text);
   font-family: var(--font-pixel);
   font-size: 1rem;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
 }
 
 .net-controls button:hover,
@@ -806,7 +848,7 @@ a:hover {
   font-family: var(--font-pixel);
   font-size: 0.9rem;
   line-height: 1.3;
-  cursor: pointer;
+  cursor: var(--cursor-hand);
 }
 
 .battle-picks button:hover,
@@ -961,8 +1003,10 @@ a:hover {
   margin-bottom: 0;
 }
 
-/* A street cat asleep on top of a box, breathing slowly. Its two pictures lie side by side in
-   one image, and the breath shows first one and then the other. */
+/* A street cat asleep on top of a box, breathing slowly. Its pictures lie side by side in one
+   image: asleep breathing out, asleep breathing in, then awake, getting up and sitting. The
+   breath shows the first two in turn; the script shows the others (SleepingCat.tsx). The cat is
+   a button: poked, it sits up and bats the cursor away. */
 .note.has-cat {
   position: relative;
 }
@@ -972,22 +1016,51 @@ a:hover {
   right: 30px;
   bottom: calc(100% + var(--px));
   width: 72px;
+  /* Lying down, the cat fills only the lower two thirds of its pictures. */
   height: 48px;
-  background: url('/images/turk/sleeping-cat.png') 0 0 / 200% 100% no-repeat;
+  padding: 0;
+  border: 0;
+  background: url('/images/turk/sleeping-cat.png') 0 100% / 700% auto no-repeat;
   image-rendering: pixelated;
-  pointer-events: none;
+}
+
+/* Getting up and sitting, it needs the whole picture. */
+.sleeping-cat.is-up {
+  height: 72px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .sleeping-cat {
+  .sleeping-cat:not(.is-awake) {
     animation: cat-breath 3.4s steps(1) infinite;
   }
 }
 
 @keyframes cat-breath {
   50% {
-    background-position: 100% 0;
+    background-position: 16.667% 100%;
   }
+}
+
+/* While the cat bats the cursor: the leg that reaches out from the cat, and the picture of the
+   cursor that its paw knocks away. Both lie over the whole page, the leg on top. The real
+   cursor is hidden for that moment, wherever it is. */
+.cat-paw,
+.knocked-cursor {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.cat-paw {
+  z-index: 101;
+}
+
+html.cursor-away,
+html.cursor-away * {
+  cursor: none !important;
 }
 
 /* Lists in the Turkish theme: phrases with their meanings, and plain facts with a crescent. */
