@@ -150,8 +150,11 @@ a:hover {
   padding: 24px 16px 40px;
 }
 
-/* The sky behind the page. It fills the window, and its still canvas and the layer of lit
-   constellations slide slowly as the page scrolls. */
+/* The sky behind the page. It fills the window. Its canvases lie one over another: the Milky
+   Way at the back, then the far stars, the constellations, and the near stars at the front.
+   The Milky Way and the constellations slide at their own pace as the page scrolls, and the
+   layer of lit constellations slides with the constellations. The two canvases of stars stay
+   where they are and are drawn again at every scroll. */
 .sky {
   position: fixed;
   z-index: -1;
@@ -1172,6 +1175,17 @@ a:hover {
   width: 176px;
   height: 62px;
   margin-bottom: 12px;
+}
+
+/* A notice set apart from the rest of the box, with a bright bar down its side, so that it is
+   not missed. */
+.link-box .link-notice {
+  margin-bottom: 14px;
+  padding: 9px 12px 10px 17px;
+  background: var(--night-deep);
+  box-shadow:
+    inset 0 0 0 2px var(--line-dim),
+    inset 7px 0 0 0 var(--star);
 }
 
 .link-code {

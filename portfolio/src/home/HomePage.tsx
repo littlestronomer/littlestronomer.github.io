@@ -84,7 +84,12 @@ function LinkToMe() {
     <section className="box link-box" aria-labelledby="link-title">
       <h2 id="link-title">Link to me</h2>
       <img className="pixel-button" src="/buttons/littlestronomer.png" width={88} height={31} alt="littlestronomer" />
-      <p>Have a site of your own? You&apos;re welcome to put my button on it:</p>
+      <p>Have a site of your own? You&apos;re welcome to put my button on it.</p>
+      {/* Said plainly, so that nobody takes the site for something made by hand. */}
+      <p className="link-notice">
+        I have to say, though, that I used AI to make this website. So it is okay if you hate me, as
+        long as it brings you some relief.
+      </p>
       <pre className="link-code">
         <code>{LINK_CODE}</code>
       </pre>
@@ -315,7 +320,8 @@ export default function HomePage() {
         ) : (
           <p>
             Göktürk Batın Dervişoğlu, 2026. The network at the top trains on your own device, and the
-            constellations behind the page light up when you touch them.
+            constellations behind the page light up when you touch them. The galaxies, nebulae and
+            star clusters beside them are where they are in the real sky.
           </p>
         )}
       </footer>

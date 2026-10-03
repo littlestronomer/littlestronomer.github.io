@@ -94,6 +94,25 @@ export class Pixels {
 }
 
 /**
+ * A way to paint on a layer that is clear wherever nothing is drawn. A faint pixel stays partly
+ * see-through, so whatever lies behind the layer shows, where Pixels.set would mix it with black.
+ */
+export function clearPlot(layer: Pixels) {
+  const data = layer.image.data
+  return (x: number, y: number, color: Rgb, alpha = 1) => {
+    x = Math.round(x)
+    y = Math.round(y)
+    if (x < 0 || y < 0 || x >= layer.width || y >= layer.height) return
+    const k = (y * layer.width + x) * 4
+    const under = (data[k + 3] / 255) * (1 - alpha)
+    const cover = alpha + under
+    if (cover === 0) return
+    for (let part = 0; part < 3; part++) data[k + part] = (color[part] * alpha + data[k + part] * under) / cover
+    data[k + 3] = cover * 255
+  }
+}
+
+/**
  * Calls `tick` about `fps` times a second while the element is on screen and the tab is
  * visible. Returns a function that stops it for good.
  */
