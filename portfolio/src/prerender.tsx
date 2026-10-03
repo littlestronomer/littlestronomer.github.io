@@ -2,7 +2,6 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import Notes from './content/Notes'
 import { LINKS, PROFILE, SITE_URL } from './content/profile'
 import HomePage from './home/HomePage'
-import OnePage from './horizon/OnePage'
 import WalkLayout from './horizon/WalkLayout'
 
 // Renders the site without a browser, for scripts/prerender.mjs. The HTML it fills in is what
@@ -16,11 +15,6 @@ export function renderHome() {
 /** The walk along the water at /walk/. */
 export function renderWalk() {
   return renderToStaticMarkup(<WalkLayout />)
-}
-
-/** The walk's notes as one plain page, at /walk/page/. */
-export function renderWalkPage() {
-  return renderToStaticMarkup(<OnePage />)
 }
 
 /** A schema.org profile, for a <script type="application/ld+json"> tag. */
@@ -74,6 +68,6 @@ export function llmsText() {
 ## About this site
 
 - [Portfolio](${SITE_URL}): these notes on a pixel-art night sky, next to a small neural network that trains live in the browser
-- [A walk along the water](${link('/walk/')}): my hobby corner, the same notes on a painted shore that scrolls sideways
+- [A walk along the water](${link('/walk/')}): my hobby corner, a painted shore that scrolls sideways, with a paper boat and nothing to read
 `
 }

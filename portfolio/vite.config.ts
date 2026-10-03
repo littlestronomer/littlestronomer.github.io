@@ -8,8 +8,8 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     rollupOptions: {
-      // The portfolio at /, and my hobby corner at /walk/: the walk along the water and the
-      // same notes as one plain page.
+      // The portfolio at /, and my hobby corner at /walk/. The page at /walk/page/ only sends
+      // old links on to the portfolio.
       input: {
         main: 'index.html',
         walk: 'walk/index.html',

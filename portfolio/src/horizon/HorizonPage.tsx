@@ -11,7 +11,7 @@ import { createWalk } from './walk'
 
 gsap.registerPlugin(useGSAP, ScrollTrigger)
 
-// The painting moves at most this fraction of the notes' speed, so it reads as far away.
+// The painting moves at most this fraction of the walk's speed, so it reads as far away.
 const SKY_SPEED = 0.6
 
 // One arrow-key press moves the walk this many pixels.
@@ -28,7 +28,6 @@ export default function HorizonPage() {
   const root = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const track = useRef<HTMLElement>(null)
-  const nav = useRef<HTMLElement>(null)
   const [walk] = useState(createWalk)
   // Without WebGL the painting stays still and the boat is drawn as a plain picture.
   const [paintingIsFlat, setPaintingIsFlat] = useState(false)
@@ -38,12 +37,11 @@ export default function HorizonPage() {
     () => {
       const stageEl = stage.current
       const trackEl = track.current
-      const navEl = nav.current
-      if (!stageEl || !trackEl || !navEl) return
+      if (!stageEl || !trackEl) return
 
       const walkLength = () => Math.max(0, trackEl.offsetWidth - stageEl.clientWidth)
 
-      // Slide the painting along with the notes, slower than them.
+      // Slide the painting along with the walk, slower than it.
       const placeSky = (progress: number) => {
         const width = stageEl.clientWidth
         const paintingWidth = Math.max(stageEl.clientHeight, width / PAINTING_ASPECT) * PAINTING_ASPECT
@@ -55,9 +53,9 @@ export default function HorizonPage() {
         invalidate()
       }
 
-      // Scrolling down moves the notes left. The scroll distance equals the walk length,
+      // Scrolling down moves the shore left. The scroll distance equals the walk length,
       // so a scroll position maps straight to how far along the walk you are.
-      const walkTween = gsap.to(trackEl, {
+      gsap.to(trackEl, {
         x: () => -walkLength(),
         ease: 'none',
         onUpdate: () => placeSky(-Number(gsap.getProperty(trackEl, 'x')) / (walkLength() || 1)),
@@ -71,29 +69,6 @@ export default function HorizonPage() {
           onRefresh: (self) => placeSky(self.progress),
         },
       })
-
-      const scrollToNote = (note: HTMLElement, smooth: boolean) => {
-        const trigger = walkTween.scrollTrigger
-        if (!trigger) return
-        const offset = gsap.utils.clamp(0, walkLength(), note.offsetLeft - stageEl.clientWidth * 0.08)
-        window.scrollTo({ top: trigger.start + offset, behavior: smooth && !reducedMotion ? 'smooth' : 'auto' })
-      }
-
-      // Tabbing into a note that is off screen brings it into view.
-      const onFocusIn = (event: FocusEvent) => {
-        const note = event.target instanceof Element ? event.target.closest<HTMLElement>('.note') : null
-        if (note) scrollToNote(note, false)
-      }
-
-      // The section links sail to their note and move keyboard focus there.
-      const onNavClick = (event: MouseEvent) => {
-        const link = event.target instanceof Element ? event.target.closest('a') : null
-        const note = link && document.getElementById(link.hash.slice(1))
-        if (!note) return
-        event.preventDefault()
-        scrollToNote(note, true)
-        note.focus({ preventScroll: true })
-      }
 
       // Sideways trackpad swipes and the left/right arrow keys also walk along.
       const onWheel = (event: WheelEvent) => {
@@ -110,15 +85,11 @@ export default function HorizonPage() {
         window.scrollBy(0, direction * ARROW_STEP)
       }
 
-      trackEl.addEventListener('focusin', onFocusIn)
-      navEl.addEventListener('click', onNavClick)
       window.addEventListener('wheel', onWheel, { passive: false })
       window.addEventListener('keydown', onKeyDown)
       document.fonts.ready.then(() => ScrollTrigger.refresh())
 
       return () => {
-        trackEl.removeEventListener('focusin', onFocusIn)
-        navEl.removeEventListener('click', onNavClick)
         window.removeEventListener('wheel', onWheel)
         window.removeEventListener('keydown', onKeyDown)
       }
@@ -132,7 +103,6 @@ export default function HorizonPage() {
       rootRef={root}
       stageRef={stage}
       trackRef={track}
-      navRef={nav}
       sky={<PaintedSky walk={walk} animate={!reducedMotion} onUnavailable={() => setPaintingIsFlat(true)} />}
       boat={<PaperBoat walk={walk} still={reducedMotion} />}
     />
