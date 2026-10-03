@@ -1,0 +1,1301 @@
+/* The portfolio: a night sky drawn in pixels. Indigo for the night, star yellow for what
+   matters most, and the network's blue and orange for its two kinds of dots. Headings and
+   labels use the pixel font; reading text uses a font made for legibility. */
+:root {
+  color-scheme: dark;
+  --night: #100f2b;
+  --night-deep: #0b0a22;
+  --panel: #1b1942;
+  --panel-raised: #262259;
+  --line: #5b55c7;
+  --line-dim: #35307e;
+  --text: #edecff;
+  --muted: #aaa6dc;
+  --star: #ffe7a3;
+  --link: #8fd4ff;
+  --blue: #4aa8ff;
+  --orange: #ff944d;
+  --live: #7dffb0;
+  --ink: #05040f;
+  --font-pixel: 'Pixelify Sans', 'Courier New', monospace;
+  --font-body: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-code: ui-monospace, 'Cascadia Mono', 'DejaVu Sans Mono', monospace;
+  /* The size of one pixel in the frames around boxes. */
+  --px: 3px;
+  --gap: 28px;
+  /* Title bars, and the text that sits on bars and on line-colored fills. */
+  --bar: var(--panel-raised);
+  --on-bar: var(--text);
+  --on-line: #fff;
+  --link-line: rgb(143 212 255 / 0.45);
+  --glow: rgb(111 188 255 / 0.9);
+  --sparkle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffe7a3' d='M3 0h1v2H3zM3 5h1v2H3zM0 3h2v1H0zM5 3h2v1H5zM2 2h3v3H2z'/%3E%3Cpath fill='%23fff' d='M3 3h1v1H3z'/%3E%3C/svg%3E");
+  --neuron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 5' shape-rendering='crispEdges'%3E%3Cpath fill='%234aa8ff' d='M1 0h3v1H1zM0 1h5v3H0zM1 4h3v1H1z'/%3E%3Cpath fill='%23bfe6ff' d='M1 1h2v1H1z'/%3E%3C/svg%3E");
+  --bullet: var(--sparkle);
+}
+
+/* The Turkish theme, switched on by clicking "Turkish" among my languages: the red and white of
+   the flag everywhere, with its crescent and star for the icons. */
+:root[data-theme='turk'] {
+  --night: #d60a16;
+  --night-deep: #9c0711;
+  --panel: #b90915;
+  --panel-raised: #8f0710;
+  --line: #fff;
+  --line-dim: #f6a6ab;
+  --text: #fff;
+  --muted: #ffdcde;
+  --star: #fff;
+  --link: #fff;
+  --blue: #fff;
+  --orange: #ffb3b8;
+  --live: #fff;
+  --ink: #6a040b;
+  --bar: #fff;
+  --on-bar: #c8091a;
+  --on-line: #c8091a;
+  --link-line: rgb(255 255 255 / 0.6);
+  --glow: rgb(255 255 255 / 0.9);
+  --sparkle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23e30a17' d='M1 0h4v1H1zM0 1h2v5H0zM1 6h4v1H1zM6 2h1v1H6zM5 3h3v1H5zM6 4h1v1H6z'/%3E%3C/svg%3E");
+  --bullet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' d='M1 0h4v1H1zM0 1h2v5H0zM1 6h4v1H1zM6 2h1v1H6zM5 3h3v1H5zM6 4h1v1H6z'/%3E%3C/svg%3E");
+  --neuron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 5' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' d='M2 0h1v5H2zM0 2h5v1H0zM1 1h3v3H1z'/%3E%3C/svg%3E");
+}
+
+:root[data-theme='turk'] .net-glow {
+  text-shadow: 0 0 10px rgb(255 255 255 / 0.7);
+}
+
+/* Room at the top for the banner. */
+:root[data-theme='turk'] .home {
+  padding-top: 64px;
+}
+
+/* Over the wall of flags the footer's words need a panel of their own to stay readable. */
+:root[data-theme='turk'] .home-footer p {
+  padding: 10px 16px 12px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow:
+    0 calc(-1 * var(--px)) 0 0 var(--line),
+    0 var(--px) 0 0 var(--line),
+    calc(-1 * var(--px)) 0 0 0 var(--line),
+    var(--px) 0 0 0 var(--line);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Faint stars behind everything, until the sky canvas takes over. The tile is drawn small and
+   scaled up, pixel for pixel. */
+html {
+  background: var(--night) url('./assets/stars-tile.png') 0 0 / 192px 192px repeat;
+  image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  image-rendering: auto;
+  -webkit-text-size-adjust: 100%;
+}
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--link-line);
+}
+
+a:hover {
+  color: var(--star);
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 3px solid var(--star);
+  outline-offset: 3px;
+}
+
+/* The page is kept narrow enough to leave open sky on both sides of a laptop screen. */
+.home {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+
+/* The sky behind the page. It fills the window, and its still canvas and the layer of lit
+   constellations slide slowly as the page scrolls. */
+.sky {
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky > canvas,
+.sky-lit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.sky canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Each constellation's shine is a small canvas of its own, with a soft bloom on top of the
+   pixel halo. */
+.sky-lit canvas {
+  position: absolute;
+  filter: drop-shadow(0 0 6px var(--glow));
+}
+
+/* With reduced motion the sky is fastened to the page instead and scrolls with it. */
+.sky.is-fastened {
+  position: absolute;
+}
+
+/* A few words that follow the cursor over a constellation. */
+.sky-whisper {
+  position: fixed;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  margin: 0;
+  padding: 4px 10px 5px;
+  background: var(--panel);
+  color: var(--star);
+  font-family: var(--font-pixel);
+  font-size: 0.95rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow:
+    0 -2px 0 0 var(--line),
+    0 2px 0 0 var(--line),
+    -2px 0 0 0 var(--line),
+    2px 0 0 0 var(--line),
+    4px 4px 0 0 var(--ink);
+}
+
+/* A patch of open sky above the footer, tall enough for the northern constellations: the Great
+   Bear, the Little Bear and the Queen around the pole. */
+.open-sky {
+  height: min(350px, calc((100vw - 48px) * 0.39 + 64px));
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* "Turkish" among my languages is a switch. It reads like the words around it, with a dotted
+   line underneath to hint that it does something. */
+.word-switch {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.word-switch:hover {
+  color: var(--star);
+  text-decoration-style: solid;
+}
+
+/* The banner across the top while the site wears the flag: white with red letters, the shout
+   sliding by like an old marquee. */
+.turk-banner {
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  background: #fff;
+  color: #c8091a;
+  font-family: var(--font-pixel);
+  font-weight: 600;
+  box-shadow: 0 var(--px) 0 0 #6a040b;
+}
+
+.turk-shout {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 1.15rem;
+  white-space: nowrap;
+}
+
+.turk-marquee {
+  display: inline-flex;
+  width: max-content;
+}
+
+.turk-marquee > span > span {
+  display: inline-block;
+  padding-right: 2.2rem;
+}
+
+/* The crescent and star between each shout. */
+.turk-marquee > span > span::after {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 14px;
+  margin-left: 2.2rem;
+  background: var(--sparkle) center / contain no-repeat;
+  image-rendering: pixelated;
+  vertical-align: -1px;
+}
+
+.turk-banner button {
+  flex: none;
+  margin: 0 10px;
+  padding: 3px 10px 4px;
+  border: 0;
+  background: #c8091a;
+  color: #fff;
+  font-family: var(--font-pixel);
+  font-size: 0.92rem;
+  cursor: pointer;
+  box-shadow:
+    0 -2px 0 0 #6a040b,
+    0 2px 0 0 #6a040b,
+    -2px 0 0 0 #6a040b,
+    2px 0 0 0 #6a040b;
+}
+
+.turk-banner button:hover {
+  background: #e30a17;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .turk-marquee {
+    animation: slide 26s linear infinite;
+  }
+}
+
+/* A pixel frame: the box copied one "pixel" out on each side, which leaves the corners
+   notched, plus a hard shadow below and to the right. */
+.masthead,
+.tabs a,
+.note,
+.box,
+.net-controls button,
+.pixel-action {
+  box-shadow:
+    0 calc(-1 * var(--px)) 0 0 var(--line),
+    0 var(--px) 0 0 var(--line),
+    calc(-1 * var(--px)) 0 0 0 var(--line),
+    var(--px) 0 0 0 var(--line),
+    calc(2 * var(--px)) calc(2 * var(--px)) 0 0 var(--ink);
+}
+
+/* The header: my handle over the night sky. The canvas draws the sky once the page runs;
+   until then, a plain gradient stands in. */
+.masthead {
+  position: relative;
+  height: 236px;
+  overflow: hidden;
+  background: linear-gradient(#07061a, #16133b 55%, #2e2765);
+}
+
+.masthead-sky {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* Invisible buttons over Orion and the astronomer; the sky script places them. */
+.sky-spot {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.sky-spot:focus-visible {
+  outline: 2px dashed var(--star);
+  outline-offset: 2px;
+}
+
+.masthead-words {
+  position: absolute;
+  top: 50px;
+  left: 34px;
+  max-width: 46%;
+}
+
+.wordmark {
+  margin: 0;
+  color: var(--star);
+  font-family: var(--font-pixel);
+  font-weight: 600;
+  font-size: 3.2rem;
+  line-height: 1;
+  text-shadow: 4px 4px 0 var(--ink);
+}
+
+.tagline {
+  margin: 0.7rem 0 0;
+  font-family: var(--font-pixel);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+/* Section links, as a row of pixel tabs. */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 12px;
+  margin: 26px 3px 0;
+}
+
+.tabs a {
+  padding: 5px 12px 6px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-pixel);
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.tabs a:hover {
+  background: var(--panel-raised);
+  color: var(--star);
+}
+
+/* The tab of the note being read. */
+.tabs a[aria-current] {
+  background: var(--line);
+  color: var(--on-line);
+}
+
+/* Desktop: the introduction and the live network side by side, then the notes on the left
+   and the rest of the sidebar on the right. The sidebar's second row starts right under the
+   network, and the notes right under the introduction, whichever is taller. */
+.home-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    'hello net'
+    'notes net'
+    'notes side';
+  gap: var(--gap);
+  margin-top: 34px;
+}
+
+.note-hello {
+  grid-area: hello;
+  align-self: start;
+}
+
+.net-box {
+  grid-area: net;
+  align-self: start;
+}
+
+.home-notes {
+  grid-area: notes;
+  display: grid;
+  align-content: start;
+  gap: var(--gap);
+}
+
+.home-side {
+  grid-area: side;
+  display: grid;
+  align-content: start;
+  gap: var(--gap);
+}
+
+/* Boxes. Each starts with a title bar, like a little window. */
+.note,
+.box {
+  --pad: 24px;
+  margin: 0;
+  padding: var(--pad);
+  background: var(--panel);
+  scroll-margin-top: 20px;
+}
+
+.net-box,
+.home-side .box {
+  --pad: 16px;
+}
+
+.note > h2:first-child,
+.box > h2:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) 18px;
+  padding: 9px var(--pad) 10px;
+  border-bottom: var(--px) solid var(--line);
+  background: var(--bar);
+  color: var(--on-bar);
+  font-family: var(--font-pixel);
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+
+.note > h2:first-child::before,
+.box > h2:first-child::before {
+  content: '';
+  flex: none;
+  width: 14px;
+  height: 14px;
+  background: var(--sparkle) center / contain no-repeat;
+  image-rendering: pixelated;
+}
+
+/* The icon lines up with the first line, so a long title can wrap under itself. */
+.note h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 1.5rem 0 0.15rem;
+  color: var(--star);
+  font-family: var(--font-pixel);
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+.note h2 + h3 {
+  margin-top: 0;
+}
+
+/* Each item gets a small neuron, like the nodes in a layer. */
+.note h3::before {
+  content: '';
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--neuron) center / contain no-repeat;
+  image-rendering: pixelated;
+}
+
+.note p {
+  margin: 0 0 0.9rem;
+}
+
+.note > :last-child {
+  margin-bottom: 0;
+}
+
+.note-meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.note h3 + .note-meta {
+  margin-bottom: 0.5rem;
+}
+
+/* The introduction. */
+.note-hello h1 {
+  margin: 0 0 0.9rem;
+  color: var(--star);
+  font-family: var(--font-pixel);
+  font-weight: 600;
+  font-size: clamp(2rem, 4.2vw, 2.65rem);
+  line-height: 1.1;
+  text-shadow: 3px 3px 0 var(--ink);
+}
+
+.note-lead {
+  font-size: 1.15rem;
+}
+
+.note-highlights {
+  display: grid;
+  gap: 0.45rem;
+  margin: 1.2rem 0 1.5rem;
+  padding: 14px 16px;
+  list-style: none;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+}
+
+.note-highlights li {
+  position: relative;
+  padding-left: 22px;
+}
+
+.note-highlights li::before {
+  content: '';
+  position: absolute;
+  top: 0.45em;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  background: var(--bullet) center / contain no-repeat;
+  image-rendering: pixelated;
+}
+
+.note-highlights strong {
+  color: var(--star);
+}
+
+.note-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+/* A project's links sit right under its description. */
+.note p:has(+ .note-links) {
+  margin-bottom: 0.3rem;
+}
+
+.note-links a {
+  font-family: var(--font-pixel);
+  font-size: 1.02rem;
+}
+
+/* Skills as a two-column list. */
+.note-toolbox-list {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.35rem 1.1rem;
+  margin: 1.4rem 0;
+  padding: 14px 16px;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+}
+
+.note-toolbox-list dt {
+  color: var(--star);
+  font-family: var(--font-pixel);
+}
+
+.note-toolbox-list dd {
+  margin: 0;
+}
+
+.note-kaggle {
+  margin-top: 1.5rem;
+  padding: 10px 14px;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+}
+
+/* The live network. */
+.net-map,
+.net-graph {
+  display: block;
+  width: 288px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  image-rendering: pixelated;
+}
+
+.net-map {
+  aspect-ratio: 1;
+  box-shadow: 0 0 0 2px var(--line-dim);
+}
+
+.net-state {
+  margin: 14px 0 10px;
+  font-family: var(--font-pixel);
+  font-size: 1.05rem;
+}
+
+.net-glow {
+  margin-right: 0.35em;
+  color: var(--link);
+  text-shadow: 0 0 10px rgb(143 212 255 / 0.65);
+}
+
+.net-glow.is-learned {
+  color: var(--star);
+  text-shadow: 0 0 12px rgb(255 231 163 / 0.75);
+}
+
+.net-numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.net-numbers div {
+  padding: 5px 9px 6px;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+}
+
+.net-numbers dt {
+  color: var(--muted);
+  font-family: var(--font-pixel);
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.net-numbers dd {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.net-caption {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+.net-graph-wrap {
+  position: relative;
+  width: 288px;
+  max-width: 100%;
+  margin: 18px auto 34px;
+}
+
+.net-layers {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-pixel);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.net-layers span {
+  position: absolute;
+  translate: -50% 0;
+  white-space: nowrap;
+}
+
+.net-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin: 18px 3px 3px;
+}
+
+.net-controls button,
+.pixel-action {
+  padding: 5px 14px 6px;
+  border: 0;
+  background: var(--panel-raised);
+  color: var(--text);
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.net-controls button:hover,
+.pixel-action:hover {
+  background: var(--line);
+  color: var(--on-line);
+}
+
+.net-controls button:active,
+.pixel-action:active {
+  translate: 2px 2px;
+}
+
+/* The battle map, which takes the network's place in the Turkish theme. The line that tells
+   what is happening keeps room for five lines, so the box does not jump as it changes. */
+.battle-phase {
+  min-height: 7.5em;
+  margin: 0 0 12px;
+  font-size: 0.97rem;
+  line-height: 1.5;
+}
+
+/* Two rows of small buttons: one for each battle, and one for each step of the battle on the
+   map. The one that is showing is filled in. */
+.battle-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.battle-steps {
+  margin-bottom: 10px;
+}
+
+.battle-picks button {
+  min-width: 2em;
+  padding: 2px 5px 3px;
+  border: 0;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+  color: var(--text);
+  font-family: var(--font-pixel);
+  font-size: 0.9rem;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.battle-picks button:hover,
+.battle-picks button[aria-pressed='true'],
+.battle-picks button[aria-current] {
+  background: var(--line);
+  box-shadow: none;
+  color: var(--on-line);
+}
+
+.battle-sides {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.battle-sides dt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--star);
+  font-family: var(--font-pixel);
+}
+
+.battle-sides dd {
+  margin: 0;
+}
+
+.battle-dot {
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  box-shadow: 2px 2px 0 #5e040b;
+}
+
+.battle-dot.is-foe {
+  background: #1a0103;
+}
+
+/* The tea glass that can be filled again and again, and is drunk each time. When a glass is
+   finished, "Yarasın!" pops up at its rim, drifts away and is gone. */
+.tea-stage {
+  position: relative;
+  width: 96px;
+  margin: 2px auto 12px;
+}
+
+.tea-glass {
+  display: block;
+  width: 96px;
+  height: 104px;
+  image-rendering: pixelated;
+}
+
+.tea-cheer {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  translate: -50% 0;
+  color: var(--text);
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+  line-height: 1;
+  text-shadow: 2px 2px 0 var(--ink);
+  white-space: nowrap;
+  pointer-events: none;
+  /* Without motion it simply shows for a moment. */
+  animation: tea-cheer-still 1.6s steps(1, end) forwards;
+}
+
+@keyframes tea-cheer-still {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes tea-cheer {
+  0% {
+    opacity: 0;
+    transform: translate(0, 10px) scale(0.4);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(3px, -8px) scale(1.25);
+  }
+  26% {
+    transform: translate(6px, -12px) scale(1);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(14px, -20px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(46px, -52px) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tea-cheer {
+    animation: tea-cheer 1.1s ease-out forwards;
+  }
+}
+
+.tea-count strong {
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+}
+
+.tea-box .pixel-action {
+  margin: 2px 3px 3px;
+}
+
+/* Lists in the Turkish theme: phrases with their meanings, and plain facts with a crescent. */
+.turk-words {
+  margin: 0;
+}
+
+.turk-words dt {
+  margin-top: 0.8rem;
+  color: var(--star);
+  font-family: var(--font-pixel);
+  font-size: 1.08rem;
+}
+
+.turk-words dt:first-child {
+  margin-top: 0;
+}
+
+.turk-words dd {
+  margin: 0;
+}
+
+.turk-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.97rem;
+}
+
+.turk-list li {
+  position: relative;
+  padding-left: 22px;
+}
+
+.turk-list li::before {
+  content: '';
+  position: absolute;
+  top: 0.45em;
+  left: 0;
+  width: 13px;
+  height: 10px;
+  background: var(--bullet) center / contain no-repeat;
+  image-rendering: pixelated;
+}
+
+.home-side .box > p {
+  margin: 0 0 0.7rem;
+  font-size: 0.97rem;
+}
+
+.note-links .word-switch {
+  font-family: var(--font-pixel);
+  font-size: 1.02rem;
+}
+
+/* The training log: my latest commits, as they happen. */
+.log-box {
+  background: var(--night-deep);
+}
+
+.log-box > p {
+  margin: 0 0 0.7rem;
+}
+
+.log-box > :last-child {
+  margin-bottom: 0;
+}
+
+.note-commits {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+.note-commits li {
+  position: relative;
+  display: grid;
+  padding-left: 16px;
+  line-height: 1.45;
+}
+
+.note-commits li::before {
+  content: '>';
+  position: absolute;
+  left: 0;
+  color: var(--blue);
+  font-family: var(--font-pixel);
+}
+
+.note-commits .note-meta {
+  font-family: var(--font-pixel);
+  font-size: 0.82rem;
+}
+
+.note-commits li.is-new {
+  animation: arrive 2s ease-out;
+}
+
+@keyframes arrive {
+  from {
+    background: rgb(255 231 163 / 0.2);
+  }
+}
+
+.live-dot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  background: var(--live);
+  box-shadow: 0 0 8px var(--live);
+  animation: blink 1.6s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* My résumé, written up the way a model on a hub describes itself. */
+.card-box > p {
+  margin: 0 0 0.8rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.model-card {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.model-card dt {
+  color: var(--star);
+  font-family: var(--font-pixel);
+  font-size: 0.85rem;
+}
+
+.model-card dd {
+  margin: 0 0 0.6rem;
+}
+
+.model-card dd:last-child {
+  margin-bottom: 0;
+}
+
+/* The hobby corner, with the painting as pixel art. */
+.walk-picture {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.walk-picture img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  box-shadow: 0 0 0 2px var(--line-dim);
+}
+
+.walk-box p,
+.link-box p {
+  margin: 0 0 0.7rem;
+  font-size: 0.97rem;
+}
+
+.walk-box > :last-child,
+.link-box > :last-child {
+  margin-bottom: 0;
+}
+
+/* 88×31 buttons keep their pixels sharp at any size. */
+.pixel-button {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.link-box .pixel-button {
+  width: 176px;
+  height: 62px;
+  margin-bottom: 12px;
+}
+
+.link-code {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: var(--night-deep);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+  color: var(--muted);
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.link-box .pixel-action {
+  margin: 0 3px 3px;
+}
+
+/* The footer: a strip of buttons sliding by, old-web style. */
+.home-footer {
+  margin-top: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.button-strip {
+  overflow: hidden;
+  padding: 6px 0;
+}
+
+/* The padding on the right matches the gap, so sliding by half the width lands exactly on
+   the start of the second copy. */
+.button-wall {
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  margin: 0;
+  padding: 0 10px 0 0;
+  list-style: none;
+}
+
+.button-wall li {
+  flex: none;
+}
+
+.button-wall .pixel-button {
+  width: 88px;
+  height: 31px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .button-wall {
+    animation: slide 40s linear infinite;
+  }
+
+  .button-strip:hover .button-wall,
+  .button-strip:focus-within .button-wall {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes slide {
+  to {
+    translate: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-wall {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+  }
+
+  .live-dot,
+  .note-commits li.is-new {
+    animation: none;
+  }
+
+  .button-wall li[aria-hidden='true'] {
+    display: none;
+  }
+}
+
+.home-footer p {
+  max-width: 40rem;
+  margin: 22px auto 0;
+}
+
+/* Tablets and phones: one column. The network follows the introduction, then the notes, then
+   the sidebar. */
+@media (max-width: 899px) {
+  .home-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: 'hello' 'net' 'notes' 'side';
+  }
+
+  .net-box {
+    justify-self: center;
+    width: min(100%, 420px);
+  }
+}
+
+@media (max-width: 719px) {
+  .masthead {
+    height: 214px;
+  }
+
+  .masthead-words {
+    top: 22px;
+    left: 18px;
+    right: 18px;
+    max-width: none;
+  }
+
+  .wordmark {
+    font-size: 2.3rem;
+    text-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .tagline {
+    max-width: 48%;
+    font-size: 1.02rem;
+  }
+
+  .tabs {
+    gap: 12px 11px;
+  }
+
+  .tabs a {
+    padding: 3px 8px 4px;
+    font-size: 0.92rem;
+  }
+
+  /* Phones fit two rows of four; the résumé is linked again in the introduction just below. */
+  .tabs a[href$='.pdf'] {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  :root {
+    --gap: 22px;
+  }
+
+  body {
+    font-size: 1rem;
+  }
+
+  .note,
+  .box {
+    --pad: 16px;
+  }
+
+  .note > h2:first-child,
+  .box > h2:first-child {
+    font-size: 1.15rem;
+  }
+
+  .note-toolbox-list {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0 0;
+  }
+
+  .note-toolbox-list dd + dt {
+    margin-top: 0.5rem;
+  }
+}
+
+@media print {
+  html {
+    background: none;
+  }
+
+  body {
+    color: #000;
+  }
+
+  .sky,
+  .sky-whisper,
+  .turk-banner,
+  .open-sky,
+  .masthead,
+  .tabs,
+  .net-box,
+  .home-side,
+  .home-footer {
+    display: none;
+  }
+
+  .home-body {
+    display: block;
+  }
+
+  .note {
+    margin-bottom: 1.5rem;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .note > h2:first-child {
+    margin: 0 0 0.5rem;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .note h3,
+  .note-hello h1,
+  .note-highlights strong,
+  .note-toolbox-list dt {
+    color: #000;
+    text-shadow: none;
+  }
+}

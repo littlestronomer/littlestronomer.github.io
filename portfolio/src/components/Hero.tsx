@@ -156,7 +156,7 @@ export default function Hero() {
               <a href="#projects" className="btn btn-secondary">
                 Open Public GitHub Surface
               </a>
-              <a href="/Awesome_CV.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+              <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
                 Resume
               </a>
             </motion.div>

@@ -4,7 +4,7 @@ import { useRef } from 'react';
 const contactLinks = [
   { name: 'GitHub', url: 'https://github.com/littlestronomer' },
   { name: 'LinkedIn', url: 'https://linkedin.com/in/gokturk-batin-dervisoglu' },
-  { name: 'Resume', url: '/Awesome_CV.pdf' },
+  { name: 'Resume', url: '/resume.pdf' },
 ];
 
 const fitAreas = [
