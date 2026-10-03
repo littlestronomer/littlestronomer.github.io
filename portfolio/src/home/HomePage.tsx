@@ -10,7 +10,7 @@ import {
   StudyNote,
   WorkNote,
 } from '../content/Notes'
-import { LINKS, SITE_URL } from '../content/profile'
+import { SITE_URL } from '../content/profile'
 import BattleMap from './BattleMap'
 import Masthead from './Masthead'
 import SkyBackground from './SkyBackground'
@@ -26,7 +26,6 @@ const TABS = [
   { href: '#note-awards', label: 'Awards' },
   { href: '#note-study', label: 'Study' },
   { href: '#note-contact', label: 'Contact' },
-  { href: LINKS.resume, label: 'Résumé' },
   { href: '/walk/', label: 'The walk' },
 ]
 
