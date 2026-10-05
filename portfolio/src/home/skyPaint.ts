@@ -1,15 +1,15 @@
 import { plotFarGalaxy, plotSight } from './deepSky'
 import { Pixels, bayer, mix, rgb, type Rgb } from './pixels'
 import type { Figure } from './skyFigures'
-import { plotStar, plotWord, type Plot } from './starChart'
+import { plotStar, plotWord, twinkleAt, type Plot } from './starChart'
 import { STAR_COLORS } from './starField'
 import { seededRandom } from './tinyNet'
 
 // The painting of the sky behind the page. The far layer is the night itself: the Milky Way
 // with its clouds of light and its lane of dust, the faintest stars, and galaxies too far away
-// to have a name. The middle layer holds the constellations and the deep-sky objects beside
-// them. The loose stars between and in front of these are not painted here: each has a depth
-// of its own (see starField.ts).
+// to have a name. In front of it are the constellations and the deep-sky objects beside them,
+// whose stars each have a depth of their own (see skyFigures.ts). The loose stars between and
+// in front of these are not painted here (see starField.ts).
 //
 // In the Turkish theme there is no sky at all: the background is a wall of small Turkish flags,
 // laid like bricks, each row half a flag along from the one above.
@@ -28,7 +28,7 @@ export const INK = {
   haze: ['#17143c', '#1d194a', '#252057'].map(rgb),
   /** The same light toward the middle of the galaxy, where it is warmer. */
   warmHaze: ['#1a1339', '#231745', '#2e1c4f'].map(rgb),
-  line: rgb('#35317f'),
+  line: rgb('#514cb0'),
   name: rgb('#443f96'),
   lit: rgb('#e3f4ff'),
   halo: rgb('#6fbcff'),
@@ -129,27 +129,34 @@ export function paintFar(width: number, height: number) {
   return sky
 }
 
-/** The middle layer: the constellations at rest, with the deep-sky objects beside them. */
-export function paintMiddle(plot: Plot, figures: Figure[]) {
+/**
+ * A constellation at rest, as it is now: its stars wherever they are and the deep-sky objects
+ * beside it, and, as much as it is drawn, the lines that join the stars and its name. Given the
+ * moment `now`, in milliseconds, its stars twinkle the way the loose stars do: each in its own
+ * rhythm is drawn a size larger for a moment, and later a size smaller.
+ */
+export function paintFigure(plot: Plot, figure: Figure, now?: number) {
   const dim: Plot = (x, y, color, alpha = 1) => plot(x, y, color, alpha * SIGHT_AT_REST)
-  for (const figure of figures) {
-    for (const path of figure.paths) for (const [x, y] of path) plot(x, y, INK.line)
-    for (const { sight, spot } of figure.sights) plotSight(dim, sight, spot)
-    for (const star of figure.stars) plotStar(plot, star)
-    plotWord(plot, figure.name, figure.label.x, figure.label.y, INK.name)
+  for (const path of figure.paths) for (const [x, y] of path) plot(x, y, INK.line, figure.shown)
+  for (const { sight, spot } of figure.sights) plotSight(dim, sight, spot)
+  for (const star of figure.stars) {
+    const step = now === undefined ? 0 : twinkleAt(star.phase, star.speed, now)
+    plotStar(plot, step ? { ...star, size: star.size + step } : star)
   }
+  if (figure.shown > 0) plotWord(plot, figure.name, figure.label.x, figure.label.y, INK.name, figure.shown)
 }
 
 /**
- * A constellation as it shines under the cursor: a halo around each line, then the bright line
- * itself, the deep-sky objects in full color with their tags, the stars and the name.
+ * A constellation as it shines: a halo around each line, then the bright line itself, the stars
+ * and the name. Under the cursor the deep-sky objects beside it shine too, in full color with
+ * their tags; when it glows by itself for being in place, they are left as they are.
  */
-export function paintLit(plot: Plot, figure: Figure) {
+export function paintLit(plot: Plot, figure: Figure, withSights = true) {
   for (const path of figure.paths) {
     for (const [x, y] of path) for (const [dx, dy] of HALO_AROUND) plot(x + dx, y + dy, INK.halo, 0.3)
   }
   for (const path of figure.paths) for (const [x, y] of path) plot(x, y, INK.lit)
-  for (const { sight, spot, tag } of figure.sights) {
+  for (const { sight, spot, tag } of withSights ? figure.sights : []) {
     plotSight(plot, sight, spot)
     plotWord(plot, sight.tag, tag.x, tag.y, INK.litName)
   }

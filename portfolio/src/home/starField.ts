@@ -1,5 +1,5 @@
 import { Pixels, clearPlot, rgb, type Rgb } from './pixels'
-import { plotStar, type Look, type Plot } from './starChart'
+import { TWINKLE_PACE, plotStar, twinkleAt, type Look, type Plot } from './starChart'
 import { seededRandom } from './tinyNet'
 
 // The loose stars of the sky behind the page: the ones that belong to no constellation. Each
@@ -126,8 +126,8 @@ export function scatterField(width: number, view: number, tall: (drift: number) 
         drift,
         picture,
         phase: random() * 2 * Math.PI,
-        // The same pace as the stars in the header: a rhythm of three to twelve seconds.
-        speed: picture !== FAINT_DOT && random() < TWINKLERS ? 0.5 + random() * 1.8 : 0,
+        // The same pace as the stars in the header.
+        speed: picture !== FAINT_DOT && random() < TWINKLERS ? TWINKLE_PACE.slowest + random() * TWINKLE_PACE.spread : 0,
       })
       drift = depth()
     }
@@ -156,8 +156,8 @@ export function starSheet() {
 /** The picture a star shows at a moment: its own, or one a step brighter or dimmer while it twinkles. */
 function pictureNow(star: FieldStar, now: number) {
   if (!star.speed) return star.picture
-  const wave = Math.sin((now / 1000) * star.speed + star.phase)
-  return wave > 0.75 ? BRIGHTER[star.picture] : wave < -0.8 ? DIMMER[star.picture] : star.picture
+  const step = twinkleAt(star.phase, star.speed, now)
+  return step > 0 ? BRIGHTER[star.picture] : step < 0 ? DIMMER[star.picture] : star.picture
 }
 
 /**

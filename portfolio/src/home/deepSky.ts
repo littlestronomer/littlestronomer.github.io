@@ -41,6 +41,8 @@ export type Sight = {
   /** Its place in the sky, in degrees (J2000). */
   ra: number
   dec: number
+  /** How far away it is, in light-years, where a parallax tells. The others are farther than the scale goes. */
+  ly?: number
   shape: SightShape
   /** How wide a cluster of stars is, in minutes of arc. */
   across?: number

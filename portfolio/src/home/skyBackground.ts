@@ -1,33 +1,58 @@
-import { WAY_TO_THE_QUEEN } from './constellations'
-import { Pixels, clearPlot, prefersReducedMotion, whileVisible, type Rgb } from './pixels'
-import { REACH, figureAt, placeFigures, trailThrough, type Box, type Figure, type Trail } from './skyFigures'
-import { INK, paintFar, paintFlags, paintLit, paintMiddle } from './skyPaint'
-import { plotWord, shineAt, type Plot } from './starChart'
+import { CONSTELLATIONS, WAY_TO_THE_QUEEN } from './constellations'
+import { Pixels, prefersReducedMotion, whileVisible, type Rgb } from './pixels'
+import {
+  DRIFT,
+  REACH,
+  arrange,
+  figureAt,
+  placeFigures,
+  trailDots,
+  trailThrough,
+  type Box,
+  type Figure,
+  type Trail,
+} from './skyFigures'
+import { INK, paintFar, paintFigure, paintFlags, paintLit } from './skyPaint'
+import { crestAt, plotWord, shineAt, type Plot } from './starChart'
 import { drawField, plotField, scatterField, starSheet, type FieldStar } from './starField'
 import { currentTheme, watchTheme } from './theme'
 
 // The sky behind the page: stars, a band of Milky Way, and real constellations joined by thin
 // lines, with the galaxies, nebulae and star clusters that lie beside them. It drifts more
 // slowly than the page scrolls, so the page seems to float in front of it. The sky itself has
-// depth. The Milky Way is the farthest thing in it and barely moves; the constellations move a
-// little; and every loose star has a depth of its own, so the near ones pass the far ones as
-// the page scrolls. About half of the loose stars twinkle. Under the cursor a constellation shines: a crest of light crosses its
-// lines from the upper left to the lower right, again and again, like a Mexican wave.
+// depth. The Milky Way is the farthest thing in it and barely moves. Every star has a depth of
+// its own, so the near ones pass the far ones as the page scrolls; that goes for the stars of
+// a constellation too, which only line up into their figure at one place in the scrolling.
+// Far from it they are stars like the others. As the figure nears its shape its lines and its
+// name come, and at the moment it comes right a crest of light crosses it and leaves it
+// glowing. About half of the loose stars twinkle, and so does every star of a constellation,
+// which is brighter to begin with. Under the cursor a constellation shines: a crest of light
+// crosses its lines from the upper left to the lower right, again and again, like a Mexican
+// wave.
 //
 // The northern constellations share the patch of open sky above the footer, placed around the
-// pole as they really are. Touching Cassiopeia, the Queen, lights the trail stargazers follow
-// to find her: from the Great Bear's pointer stars, through the North Star, and on to her.
+// pole as they really are, and line up when the page is scrolled to its end. Touching
+// Cassiopeia, the Queen, lights the trail stargazers follow to find her: from the Great Bear's
+// pointer stars, through the North Star, and on to her.
 //
 // This file fits the sky to the page and answers the cursor. skyFigures.ts works out where
 // everything stands, skyPaint.ts paints it, and starField.ts scatters and draws the loose stars.
 
 /** One sky pixel is this many screen pixels, finer than the header's so the lines stay thin. */
 const SCALE = 2
+/** A constellation beside the page is lined up when it stands this far down the window. */
+const HOME_IN_WINDOW = 0.45
 /**
- * How far the two painted layers of the sky move for each pixel the page scrolls: the Milky
- * Way, far off, and the constellations. The loose stars each have a drift of their own.
+ * Where in the open stretch of the sidebar's column each constellation of that lane stands,
+ * from its top (0) to its bottom (1), if the stretch is at least so many pixels tall.
  */
-const DRIFT = { far: 0.12, middle: 0.3 }
+const SIDE_STRETCH = { places: [0.16, 0.64], least: 420 }
+/**
+ * The glow of a constellation that is in place. It comes into place once it is this much in
+ * place, and can do so again after it has fallen back to the second amount. A crest of light
+ * then takes this long to cross it, and afterwards it keeps this share of its full shine.
+ */
+const ARRIVAL = { sets: 0.6, resets: 0.15, ms: 1100, glow: 0.24 }
 /** The loose stars are scattered the same way every time. */
 const STAR_SEED = 1054
 /** How many times a second the loose stars are drawn again while nothing scrolls, so that they twinkle. */
@@ -60,9 +85,11 @@ type Layers = {
 }
 
 /**
- * Draws the constellations into `still`, the Milky Way into the far canvas, the loose stars
- * into the two canvases behind and in front of the constellations, and each constellation's
- * shine into a small canvas of its own inside the lit layer. Returns a function that stops it.
+ * Draws the Milky Way into the far canvas, the loose stars into the two canvases behind and in
+ * front of the constellations, the constellations themselves onto the first of those two, and
+ * each constellation's shine into a small canvas of its own inside the lit layer. `still` holds
+ * the whole sky when it is fastened to the page, and the wall of flags. Returns a function that
+ * stops it.
  */
 export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near, lit, whisper }: Layers) {
   const holder = still.parentElement
@@ -94,12 +121,27 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
   /** When the loose stars were last drawn. */
   let starsDrawn = 0
 
-  /** Draws the loose stars where the scrolling has brought them, as they twinkle at this moment. */
+  /**
+   * Draws the loose stars where the scrolling has brought them, as they twinkle at this moment,
+   * and over the far ones the constellations as they are now.
+   */
   const drawStars = (now: number) => {
     starsDrawn = now
     for (const { canvas, stars } of loose) {
       const pen = canvas.getContext('2d')
-      if (pen) drawField(pen, sheet, stars, SCALE, window.scrollY, now)
+      if (!pen) continue
+      drawField(pen, sheet, stars, SCALE, window.scrollY, now)
+      if (canvas !== behind) continue
+      const plot: Plot = (x, y, color, alpha = 1) => {
+        // Only what is in the window.
+        const top = y * SCALE - slid
+        if (top < -SCALE || top >= canvas.height) return
+        pen.globalAlpha = alpha
+        pen.fillStyle = css(color)
+        pen.fillRect(x * SCALE, top, SCALE, SCALE)
+      }
+      for (const figure of figures) paintFigure(plot, figure, now)
+      pen.globalAlpha = 1
     }
   }
   let pointer: { x: number; y: number; mouse: boolean } | null = null
@@ -157,6 +199,22 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
     const patchFromEnd = patch ? pageHeight - ((patch.top + patch.bottom) / 2 + window.scrollY) : 160
     const patchWidth = Math.min(width, pageBox.width) - 40
 
+    // The constellations of the sidebar's lane stand in the open stretch of its column, below
+    // its last box, one above the other, and line up together when that stretch is in the
+    // middle of the window. Without such a stretch they stand where their own places put them.
+    const lastBox = document.querySelector('.home-side > :last-child')?.getBoundingClientRect()
+    const stretch = sideBox && lastBox ? { top: lastBox.bottom + window.scrollY, tall: sideBox.bottom - lastBox.bottom } : null
+    const middles: Record<string, number> = {}
+    let sideHome: number | null = null
+    if (moving && stretch && stretch.tall >= SIDE_STRETCH.least) {
+      const home = Math.min(travel, Math.max(0, stretch.top + stretch.tall / 2 - windowHeight / 2))
+      sideHome = home
+      CONSTELLATIONS.filter((chart) => chart.lane === 'side').forEach((chart, i) => {
+        const onPage = stretch.top + stretch.tall * (SIDE_STRETCH.places[i] ?? 0.5)
+        middles[chart.name] = (onPage - home * (1 - slide)) / SCALE
+      })
+    }
+
     // Under the flags there are no constellations to touch.
     figures = flags
       ? []
@@ -165,6 +223,7 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
           height: rows,
           perDegree,
           lanes: { left: lanes.left / SCALE, right: lanes.right / SCALE, side: lanes.side / SCALE },
+          middles,
           north: {
             x: width / 2 / SCALE,
             y: (skyHeight - patchFromEnd) / SCALE,
@@ -172,6 +231,17 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
             height: (patchHeight - 56) / SCALE,
           },
         })
+    // Where each lines up: the northern ones at the end of the page, the others when they stand
+    // a little above the middle of the window, or as near to that as the page goes.
+    for (const figure of figures) {
+      const middle = ((figure.box.top + figure.box.bottom) / 2) * SCALE
+      figure.home =
+        figure.lane === 'north'
+          ? travel
+          : figure.lane === 'side' && sideHome !== null
+            ? sideHome
+            : Math.min(travel, Math.max(0, (middle - windowHeight * HOME_IN_WINDOW) / slide))
+    }
     queen = figures.find((figure) => figure.name === QUEEN)
     trail = trailThrough(figures)
 
@@ -188,12 +258,10 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
       show(still, paintFlags(columns, rows))
       show(far, null)
     } else if (moving) {
-      // The Milky Way and the constellations are painted once, and each slides at its own pace.
-      const middle = new Pixels(columns, rows)
-      paintMiddle(clearPlot(middle), figures)
+      // The Milky Way is painted once and slides at its own pace. The stars, loose or in a
+      // constellation, are drawn again at every scroll, each where its own depth puts it.
       show(far, paintFar(columns, Math.ceil(tall(DRIFT.far) / SCALE)))
-      show(still, middle)
-      // The loose stars are drawn again at every scroll, each where its own depth puts it.
+      show(still, null)
       const stars = scatterField(columns, Math.ceil(windowHeight / SCALE), (drift) => tall(drift) / SCALE, STAR_SEED)
       loose = [
         { canvas: behind, stars: stars.filter((star) => star.drift < DRIFT.middle) },
@@ -204,7 +272,7 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
       const sky = paintFar(columns, rows)
       const plot: Plot = (x, y, color, alpha = 1) => sky.set(x, y, color, alpha)
       plotField(plot, scatterField(columns, rows, () => rows, STAR_SEED))
-      paintMiddle(plot, figures)
+      for (const figure of figures) paintFigure(plot, figure)
       show(still, sky)
       show(far, null)
     }
@@ -218,6 +286,13 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
     for (const figure of figures) figure.pen = canvasOver(figure.frame)
     if (trail) trail.pen = canvasOver(trail.frame)
     if (!moving) holder.style.height = `${skyHeight}px`
+    // A constellation that is in place as the sky is built has not just come into place.
+    if (moving) {
+      for (const figure of figures) {
+        arrange(figure, (window.scrollY - figure.home) / SCALE, slide)
+        figure.settled = figure.placed >= ARRIVAL.sets
+      }
+    }
     follow()
   }
 
@@ -225,47 +300,80 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
     if (!pending) pending = requestAnimationFrame(rebuild)
   }
 
-  /** Slides the sky to match the scroll position, then checks what the cursor now rests on. */
+  /**
+   * Slides the sky to match the scroll position and puts every star where its depth has brought
+   * it, then checks what the cursor now rests on.
+   */
   const follow = () => {
     slid = moving ? Math.round(window.scrollY * slide) : window.scrollY
     if (moving) {
-      for (const layer of [still, lit]) layer.style.transform = `translate3d(0, ${-slid}px, 0)`
+      lit.style.transform = `translate3d(0, ${-slid}px, 0)`
       far.style.transform = `translate3d(0, ${-Math.round(window.scrollY * farSlide)}px, 0)`
+      const view = { top: slid / SCALE, bottom: (slid + window.innerHeight) / SCALE }
+      let glowing = false
+      for (const figure of figures) {
+        arrange(figure, (window.scrollY - figure.home) / SCALE, slide, view)
+        // The moment a constellation comes into place, the crest of light sets off across it.
+        if (figure.placed >= ARRIVAL.sets && !figure.settled) {
+          figure.settled = true
+          figure.struck = performance.now()
+        } else if (figure.placed <= ARRIVAL.resets) {
+          figure.settled = false
+        }
+        glowing ||= figure.placed > 0 || figure.painted
+      }
+      if (glowing && !frame) frame = requestAnimationFrame(shine)
     }
     drawStars(performance.now())
     if (pointer?.mouse) touch()
   }
+
+  /** Whether the crest of light that greets a constellation coming into place is still crossing it. */
+  const arriving = (figure: Figure, now: number) => moving && now - figure.struck < ARRIVAL.ms
 
   /** Draws one constellation's shine as it is at this moment. */
   const paintShine = (figure: Figure, now: number) => {
     const { pen, frame: bounds } = figure
     if (!pen) return
     pen.clearRect(0, 0, pen.canvas.width, pen.canvas.height)
-    figure.painted = figure.glow > 0
+    const crossing = arriving(figure, now)
+    figure.painted = figure.glow > 0 || figure.placed > 0 || crossing
     if (!figure.painted) return
 
-    // The wave runs along the diagonal: 0 at the upper left corner, 1 at the lower right.
+    // Light runs along the diagonal: 0 at the upper left corner, 1 at the lower right.
     const diagonal = bounds.right - bounds.left + (bounds.bottom - bounds.top)
-    const elapsed = now - figure.since
-    const plot: Plot = (x, y, color, alpha = 1) => {
-      const along = (x - bounds.left + (y - bounds.top)) / diagonal
-      pen.globalAlpha = alpha * figure.glow * (moving ? shineAt(along, elapsed) : 1)
-      pen.fillStyle = css(color)
-      pen.fillRect(x - bounds.left, y - bounds.top, 1, 1)
+    const shining = (level: (along: number) => number): Plot => {
+      return (x, y, color, alpha = 1) => {
+        pen.globalAlpha = alpha * level((x - bounds.left + (y - bounds.top)) / diagonal)
+        pen.fillStyle = css(color)
+        pen.fillRect(x - bounds.left, y - bounds.top, 1, 1)
+      }
     }
-    paintLit(plot, figure)
+    // In place, it glows softly by itself, and one crest of light crosses it as it comes right.
+    // Under the cursor that gives way to the brighter shine.
+    if (figure.glow < 1 && (figure.placed > 0 || crossing)) {
+      const since = now - figure.struck
+      const own = (along: number) =>
+        Math.max(figure.placed * ARRIVAL.glow, crossing ? figure.shown * crestAt(along, since, ARRIVAL.ms) : 0)
+      paintLit(shining((along) => (1 - figure.glow) * own(along)), figure, false)
+    }
+    if (figure.glow > 0) {
+      const elapsed = now - figure.since
+      paintLit(shining((along) => figure.glow * (moving ? shineAt(along, elapsed) : 1)), figure)
+    }
   }
 
   /** Draws the trail to the Queen: the light runs along it from the Great Bear to her. */
   const paintTrail = (now: number) => {
     const lady = queen
     if (!trail?.pen || !lady) return
-    const { pen, frame: bounds, dots, northStar } = trail
+    const { pen, frame: bounds, northStar } = trail
     pen.clearRect(0, 0, pen.canvas.width, pen.canvas.height)
     trail.painted = lady.glow > 0
     if (!trail.painted) return
     const elapsed = now - lady.since
     const level = (along: number) => lady.glow * (moving ? shineAt(along, elapsed) : 1)
+    const dots = trailDots(trail)
     pen.fillStyle = css(INK.litName)
     dots.forEach(([x, y], i) => {
       pen.globalAlpha = level(i / dots.length)
@@ -290,8 +398,8 @@ export function startSkyBackground(still: HTMLCanvasElement, { far, behind, near
         figure.glow =
           figure.target > figure.glow ? Math.min(figure.target, figure.glow + step) : Math.max(figure.target, figure.glow - step)
       }
-      if (figure.glow > 0 || figure.painted) paintShine(figure, now)
-      busy ||= figure.glow !== figure.target || (moving && figure.glow > 0)
+      if (figure.glow > 0 || figure.placed > 0 || figure.painted || arriving(figure, now)) paintShine(figure, now)
+      busy ||= figure.glow !== figure.target || (moving && figure.glow > 0) || arriving(figure, now)
     }
     if (trail && queen && (queen.glow > 0 || trail.painted)) paintTrail(now)
     frame = busy ? requestAnimationFrame(shine) : 0

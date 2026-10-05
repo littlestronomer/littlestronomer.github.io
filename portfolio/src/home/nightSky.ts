@@ -1,5 +1,5 @@
 import { Pixels, bayer, linePoints, mix, prefersReducedMotion, rgb, whileVisible, type Rgb } from './pixels'
-import { plotStar, plotWord, shineAt, wordWidth, type ChartStar, type Look } from './starChart'
+import { TWINKLE_PACE, plotStar, plotWord, shineAt, twinkleAt, wordWidth, type ChartStar, type Look } from './starChart'
 import { STEPPE_SKY, drawSteppe, type Steppe } from './steppe'
 import { currentTheme, watchTheme, type Theme } from './theme'
 import { seededRandom } from './tinyNet'
@@ -195,7 +195,7 @@ function buildScene(width: number, height: number, narrow: boolean, avoid: Box |
     let level = roll < 0.56 ? 0 : roll < 0.84 ? 1 : roll < 0.96 ? 2 : 3
     if ((avoid && near(x, y, avoid, 0)) || near(x, y, focus, 0)) level = Math.min(level, 1)
     if (flag && near(x, y, focus, 2)) continue
-    stars.push({ x, y, level, sky: sky(x, y), phase: random() * Math.PI * 2, speed: 0.5 + random() * 1.8 })
+    stars.push({ x, y, level, sky: sky(x, y), phase: random() * Math.PI * 2, speed: TWINKLE_PACE.slowest + random() * TWINKLE_PACE.spread })
   }
   for (const star of stars) base.set(star.x, star.y, ink.stars[star.level])
   const twinklers = stars.filter((star) => star.level > 0 && random() < 0.45)
@@ -402,8 +402,7 @@ function drawFrame(scene: Scene, now: number, cycleStart: number, meteors: Meteo
   }
 
   for (const star of scene.twinklers) {
-    const wave = Math.sin((now / 1000) * star.speed + star.phase)
-    const level = star.level + (wave > 0.75 ? 1 : wave < -0.8 ? -1 : 0)
+    const level = star.level + twinkleAt(star.phase, star.speed, now)
     frame.set(star.x, star.y, level < 0 ? star.sky : ink.stars[Math.min(level, 3)])
   }
 

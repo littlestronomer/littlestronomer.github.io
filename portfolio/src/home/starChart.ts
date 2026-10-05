@@ -9,7 +9,11 @@ export type Look = 'red' | 'gold' | 'blue'
 /** Paints one pixel; alpha below 1 blends it over what is already there. */
 export type Plot = (x: number, y: number, color: Rgb, alpha?: number) => void
 
-/** A star placed on a chart. `size` 2 is among the sky's brightest, 0 is faint. */
+/**
+ * A star placed on a chart. `size` 2 is among the sky's brightest, 0 is faint. A star that
+ * twinkles is drawn a size larger or smaller for a moment: 3 has longer arms still, and -1 is a
+ * bare dot.
+ */
 export type ChartStar = { x: number; y: number; size: number; look: Look }
 
 export const STAR_LOOKS: Record<Look, { core: Rgb; arm: Rgb }> = {
@@ -20,18 +24,39 @@ export const STAR_LOOKS: Record<Look, { core: Rgb; arm: Rgb }> = {
 
 const NEAR = [[1, 0], [-1, 0], [0, 1], [0, -1]]
 const FAR = [[2, 0], [-2, 0], [0, 2], [0, -2]]
+const FARTHEST = [[3, 0], [-3, 0], [0, 3], [0, -3]]
 const DIAGONAL = [[1, 1], [1, -1], [-1, 1], [-1, -1]]
 
 /** One star: a bright core with four arms, larger for brighter stars or when `glow` lights it. */
 export function plotStar(plot: Plot, star: ChartStar, glow: Rgb | null = null) {
   const look = STAR_LOOKS[star.look]
   plot(star.x, star.y, look.core)
+  if (star.size < 0 && !glow) return
   const arm = glow ?? look.arm
   const faint = star.size === 0 && !glow
   for (const [dx, dy] of NEAR) plot(star.x + dx, star.y + dy, arm, faint ? 0.55 : 1)
   if (star.size < 2 && !glow) return
-  for (const [dx, dy] of FAR) plot(star.x + dx, star.y + dy, arm, 0.5)
-  for (const [dx, dy] of DIAGONAL) plot(star.x + dx, star.y + dy, arm, 0.3)
+  const flaring = star.size > 2 && !glow
+  for (const [dx, dy] of FAR) plot(star.x + dx, star.y + dy, arm, flaring ? 0.85 : 0.5)
+  for (const [dx, dy] of DIAGONAL) plot(star.x + dx, star.y + dy, arm, flaring ? 0.5 : 0.3)
+  if (flaring) for (const [dx, dy] of FARTHEST) plot(star.x + dx, star.y + dy, arm, 0.4)
+}
+
+// How stars twinkle, in the header and behind the page alike: each in its own slow rhythm
+// shines one step brighter for a moment, and later one step dimmer.
+/**
+ * A twinkling star's rhythm has a pace of its own, in radians a second: from the first of these
+ * up to the two together, which is a rhythm of three to twelve seconds.
+ */
+export const TWINKLE_PACE = { slowest: 0.5, spread: 1.8 }
+
+/**
+ * Whether a twinkling star shines a step brighter (1), a step dimmer (-1) or as it is (0) at the
+ * moment `now`, in milliseconds. `speed` is its pace and `phase` where in its rhythm it starts.
+ */
+export function twinkleAt(phase: number, speed: number, now: number) {
+  const wave = Math.sin((now / 1000) * speed + phase)
+  return wave > 0.75 ? 1 : wave < -0.8 ? -1 : 0
 }
 
 // A tiny pixel font for chart labels: capitals and digits, five pixels tall.
@@ -104,6 +129,16 @@ export function shineAt(along: number, elapsed: number) {
   const crest = travelled * (1 + 2 * WAVE.width) - WAVE.width
   const near = Math.max(0, 1 - Math.abs(along - crest) / WAVE.width)
   return WAVE.rest + (1 - WAVE.rest) * near * near * (3 - 2 * near)
+}
+
+/**
+ * One crest of the same light, crossing a chart a single time in `ms` milliseconds: nothing
+ * before it comes, and nothing once it has passed.
+ */
+export function crestAt(along: number, elapsed: number, ms: number) {
+  const crest = (elapsed / ms) * (1 + 2 * WAVE.width) - WAVE.width
+  const near = Math.max(0, 1 - Math.abs(along - crest) / WAVE.width)
+  return near * near * (3 - 2 * near)
 }
 
 const RADIANS = Math.PI / 180

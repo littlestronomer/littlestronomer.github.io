@@ -248,14 +248,14 @@ export function StudyNote({ turkish = 'Turkish' }: StudyNoteProps) {
         distributed computing, and concurrency
       </p>
       <dl className="note-toolbox-list">
-        <dt>I write</dt>
+        <dt>Languages</dt>
         <dd>Python, C++, CUDA, Triton, Mojo, SQL</dd>
-        <dt>I build with</dt>
+        <dt>Tools and methods</dt>
         <dd>PyTorch, fine-tuning, RAG, MLOps</dd>
-        <dt>I work on</dt>
+        <dt>Fields</dt>
         <dd>Speech, NLP, computer vision, generative AI</dd>
-        <dt>I speed up</dt>
-        <dd>Inference, concurrency, RDMA, on Linux</dd>
+        <dt>Systems</dt>
+        <dd>Fast inference, concurrency, RDMA, Linux</dd>
       </dl>
       <p>I speak {turkish} and English, and I&apos;m learning Japanese and Chinese.</p>
     </article>

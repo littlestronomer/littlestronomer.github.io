@@ -121,7 +121,16 @@ export function useLiveCommits(): LiveCommits {
         if (!response.ok) throw new Error(`GitHub answered ${response.status}`)
         wait = Math.max(CHECK_EVERY_MS, Number(response.headers.get('X-Poll-Interval')) * 1000 || 0)
         const events = (await response.json()) as PushEvent[]
-        const pushes = events.filter((event) => event.type === 'PushEvent').slice(0, SHOWN)
+        // The same commit can arrive in two pushes, to a branch and then to main. It is listed once.
+        const heads = new Set<string>()
+        const pushes = events
+          .filter((event) => {
+            const head = event.payload.head
+            if (event.type !== 'PushEvent' || !head || heads.has(head)) return false
+            heads.add(head)
+            return true
+          })
+          .slice(0, SHOWN)
         const commits = (await Promise.all(pushes.map(describePush))).filter((commit) => commit !== null)
         if (!stopped) {
           setState((previous) => ({
