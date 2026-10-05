@@ -1,0 +1,10 @@
+# What the build writes. The site is built from portfolio/ into dist/ and put online by
+# GitHub Actions; nothing in dist/ belongs in the repository.
+/dist/
+
+# My CV, which is not part of the site for now. It stays on this machine.
+/Awesome_CV.pdf
+/portfolio/public/resume.pdf
+
+# Settings and saved work of the tools on this machine.
+/.claude/
