@@ -8,3 +8,13 @@
 
 # Settings and saved work of the tools on this machine.
 /.claude/
+
+# Python bytecode and environments left by the asset scripts in portfolio/scripts.
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets.
+.env
+.env.*

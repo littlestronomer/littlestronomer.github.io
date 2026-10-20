@@ -22,6 +22,7 @@ export const PROFILE = {
   schools: ['Istanbul Technical University', 'University of Waterloo'],
   topics: ['ML systems', 'CUDA', 'Triton', 'Inference optimization', 'Speech AI', 'Generative AI', 'PyTorch'],
   awards: [
+    '1st place, KKB Hackathon: Agentic Data Analytics (2026)',
     '4th place, NVIDIA MLSys Competition, Gated DeltaNet track (2026)',
     'Silver medal, Kaggle Hull Tactical Market Prediction, 97th of 3,677 teams (2026)',
     "Bronze medal, Kaggle, The Pokémon Company's PTCG AI Battle Challenge Playground (2026)",

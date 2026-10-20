@@ -8,10 +8,11 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     rollupOptions: {
-      // The portfolio at /, and my hobby corner at /walk/. The page at /walk/page/ only sends
-      // old links on to the portfolio.
+      // The portfolio at /, the KKB project page at /kkb/, and my hobby corner at /walk/. The page at
+      // /walk/page/ only sends old links on to the portfolio.
       input: {
         main: 'index.html',
+        kkb: 'kkb/index.html',
         walk: 'walk/index.html',
         walkPage: 'walk/page/index.html',
       },

@@ -1,0 +1,182 @@
+:root {
+  color-scheme: dark;
+  --px: 3px;
+  --gap: 26px;
+  --panel: #2f2e2d;
+  --bar: #43403b;
+  --deep: #1d1c1b;
+  --line: #8a7454;
+  --line-dim: #5b5040;
+  --text: #ebe8e2;
+  --muted: #b5ada0;
+  --head: #ffcf73;
+  --link: #ffb04d;
+  --link-line: rgb(255 176 77 / 0.45);
+  --ink: #0d0c0b;
+  --gear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffcf73' d='M4 0h1v1H4zM1 1h1v1H1zM7 1h1v1H7zM3 1h3v1H3zM2 2h5v1H2zM1 3h3v1H1zM5 3h3v1H5zM0 4h3v1H0zM6 4h3v1H6zM1 5h3v1H1zM5 5h3v1H5zM2 6h5v1H2zM1 7h1v1H1zM7 7h1v1H7zM3 7h3v1H3zM4 8h1v1H4z'/%3E%3C/svg%3E");
+  --plate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 5' shape-rendering='crispEdges'%3E%3Cpath fill='%235e6a73' d='M0 0h7v5H0z'/%3E%3Cpath fill='%23a9b4bd' d='M1 1h5v3H1z'/%3E%3Cpath fill='%23d5dde3' d='M1 1h5v1H1z'/%3E%3C/svg%3E");
+}
+* { box-sizing: border-box; }
+html, body { overscroll-behavior-x: none; }
+body { margin: 0; background: #3a3121; }
+
+/* The page is one long line. The runway is as tall as the line is long, so scrolling down walks
+   along it: the stage stays on screen and its track slides sideways. */
+.runway { position: relative; height: 500vh; }
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: clip;
+  background: #3a3121;
+  color: var(--text);
+  font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.slide { position: absolute; top: 0; left: 0; height: 100%; will-change: transform; }
+/* The picture of the factory is a canvas as wide as the window, drawn from wherever you are on the
+   line, so the browser never has to hold or repaint the whole length of it. */
+canvas.scene { position: absolute; top: 0; left: 0; image-rendering: pixelated; will-change: transform; }
+.labels { position: absolute; inset: 0; pointer-events: none; }
+.tag {
+  position: absolute;
+  display: grid;
+  gap: 1px;
+  width: max-content;
+  max-width: 190px;
+  padding: 4px 8px 5px;
+  transform: translateX(-50%);
+  background: rgb(29 28 27 / 0.88);
+  box-shadow: inset 0 0 0 2px var(--line-dim);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--muted);
+  text-align: center;
+}
+.tag b { color: var(--head); font-family: 'Pixelify Sans', monospace; font-weight: 500; font-size: 0.9rem; }
+.stem { position: absolute; width: 2px; margin-left: -1px; background: var(--line); opacity: 0.8; }
+
+.cards { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.k-card { pointer-events: auto; position: absolute; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line) var(--deep); }
+.stage a { color: var(--link); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; text-decoration-color: var(--link-line); }
+.stage a:focus-visible { outline: 3px solid var(--head); outline-offset: 3px; }
+.pixel-frame,
+.tabs a {
+  box-shadow:
+    0 calc(-1 * var(--px)) 0 0 var(--line),
+    0 var(--px) 0 0 var(--line),
+    calc(-1 * var(--px)) 0 0 0 var(--line),
+    var(--px) 0 0 0 var(--line),
+    calc(2 * var(--px)) calc(2 * var(--px)) 0 0 var(--ink);
+}
+
+/* The bar across the top: the name, a belt of gold plates and anchovies, and the tabs. */
+.bar {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding: 10px 22px 30px;
+  overflow: hidden;
+  background: #3e3d3a;
+}
+.bar canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.k-words { position: relative; }
+.k-wordmark { margin: 0; color: var(--head); font-family: 'Pixelify Sans', monospace; font-weight: 600; font-size: 2rem; line-height: 1; text-shadow: 3px 3px 0 var(--ink); }
+.k-tagline { margin: 0.3rem 0 0; font-family: 'Pixelify Sans', monospace; font-size: 0.95rem; text-shadow: 2px 2px 0 var(--ink); }
+.tabs { position: relative; display: flex; flex-wrap: wrap; gap: 8px 10px; margin: 0 3px; }
+.tabs a { padding: 3px 11px 4px; background: var(--panel); color: var(--text); font-family: 'Pixelify Sans', monospace; font-size: 0.95rem; text-decoration: none; }
+.tabs a:hover { background: var(--bar); color: var(--head); }
+.tabs a[aria-current='true'] { background: var(--bar); color: var(--head); }
+
+.k-note { --pad: 17px; padding: var(--pad); background: var(--panel); }
+.k-note > h2:first-child {
+  display: flex; align-items: center; gap: 10px;
+  margin: calc(-1 * var(--pad)) calc(-1 * var(--pad)) 14px;
+  padding: 8px var(--pad) 9px;
+  border-bottom: var(--px) solid var(--line);
+  background: var(--bar); color: var(--text);
+  font-family: 'Pixelify Sans', monospace; font-weight: 500; font-size: 1.2rem; line-height: 1.2;
+}
+.k-note > h2:first-child::before { content: ''; flex: none; width: 16px; height: 16px; background: var(--gear) center / contain no-repeat; image-rendering: pixelated; }
+.k-note h3 { display: flex; align-items: baseline; gap: 10px; margin: 1rem 0 0.15rem; color: var(--head); font-family: 'Pixelify Sans', monospace; font-weight: 500; font-size: 1.05rem; }
+.k-note h3::before { content: ''; flex: none; width: 12px; height: 9px; background: var(--plate) center / contain no-repeat; image-rendering: pixelated; }
+.k-note p { margin: 0 0 0.6rem; }
+.k-note > :last-child { margin-bottom: 0; }
+.k-hello h1 { margin: 0 0 0.55rem; color: var(--head); font-family: 'Pixelify Sans', monospace; font-weight: 600; font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.1; text-shadow: 3px 3px 0 var(--ink); }
+.k-lead { font-size: 1.05rem; }
+.k-highlights { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.35rem 1.2rem; margin: 0.7rem 0 0.8rem; padding: 10px 12px; list-style: none; background: var(--deep); box-shadow: inset 0 0 0 2px var(--line-dim); }
+.k-highlights li { position: relative; padding-left: 24px; }
+.k-highlights li::before { content: ''; position: absolute; top: 0.35em; left: 0; width: 14px; height: 14px; background: var(--gear) center / contain no-repeat; image-rendering: pixelated; }
+.k-highlights strong { color: var(--head); }
+.k-links { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: 'Pixelify Sans', monospace; }
+.k-walk { margin: 0.6rem 0 0; color: var(--head); font-family: 'Pixelify Sans', monospace; }
+.k-note code { padding: 1px 5px; background: var(--deep); color: #ffd27a; font-family: ui-monospace, 'DejaVu Sans Mono', monospace; font-size: 0.85em; }
+.k-note em { color: var(--head); font-style: normal; }
+.k-chain { margin: 0.3rem 0 0.75rem; padding: 9px 12px; background: var(--deep); box-shadow: inset 0 0 0 2px var(--line-dim); font-family: ui-monospace, 'DejaVu Sans Mono', monospace; font-size: 0.78rem; color: #ffd27a; line-height: 1.8; }
+
+/* The boxes at the end of the line, past the rocket. */
+.k-crew { display: grid; gap: 18px; }
+.k-crew .k-note, #k-credits .k-note { --pad: 14px; }
+.k-stats { display: grid; gap: 9px; margin: 0; }
+.k-stat { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 0.88rem; }
+.k-stat b { font-family: 'Pixelify Sans', monospace; font-weight: 500; color: var(--head); }
+.k-bar { grid-column: 1 / -1; height: 10px; background: var(--deep); box-shadow: inset 0 0 0 2px var(--line-dim); }
+.k-bar span { display: block; height: 100%; background: repeating-linear-gradient(90deg, #5eb663 0 6px, #4a9a50 6px 8px); }
+.k-team { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 0.92rem; }
+.k-team li { display: flex; align-items: center; gap: 12px; }
+.k-team svg { width: 18px; height: 27px; flex: none; image-rendering: pixelated; }
+.k-recipe { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
+.k-recipe li { padding: 2px 8px 3px; background: var(--deep); box-shadow: inset 0 0 0 2px var(--line-dim); font-size: 0.82rem; }
+.k-meta { color: var(--muted); font-size: 0.88rem; }
+.chain-key { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 0; padding: 0; list-style: none; font-size: 0.8rem; line-height: 1.25; }
+.chain-key li { display: flex; align-items: center; gap: 6px; }
+.chain-key canvas { flex: none; width: 20px; height: 20px; image-rendering: pixelated; }
+
+@media (max-width: 700px) {
+  .bar { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; gap: 6px; padding: 8px 14px 28px; }
+  .k-wordmark { font-size: 1.5rem; }
+  .k-tagline { display: none; }
+  .tabs { max-width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+  .tabs a { flex: none; font-size: 0.85rem; padding: 2px 8px 3px; }
+  .stage { font-size: 0.94rem; line-height: 1.5; }
+  .k-note { --pad: 14px; }
+  .k-note > h2:first-child { font-size: 1.05rem; }
+  .k-hello h1 { font-size: 1.4rem; }
+  .k-lead { font-size: 0.98rem; }
+  .k-highlights { display: none; }
+  .tag { max-width: 150px; }
+}
+
+/* A contents title at the bottom of the window. It is only the title until you open it. */
+.k-legend { position: absolute; z-index: 4; left: 16px; bottom: 14px; width: 270px; background: var(--panel); }
+.k-legend summary {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px 7px;
+  background: var(--bar); color: var(--text);
+  font-family: 'Pixelify Sans', monospace; font-weight: 500; font-size: 1.05rem; line-height: 1.2;
+  cursor: pointer; list-style: none;
+}
+.k-legend summary::-webkit-details-marker { display: none; }
+.k-legend summary::before { content: ''; flex: none; width: 16px; height: 16px; background: var(--gear) center / contain no-repeat; image-rendering: pixelated; }
+.k-legend summary::after { content: '\25B4'; margin-left: auto; color: var(--head); }
+.k-legend[open] summary::after { content: '\25BE'; }
+.k-legend summary:hover { color: var(--head); }
+.k-legend summary:focus-visible { outline: 3px solid var(--head); outline-offset: 3px; }
+.k-legend[open] summary { border-bottom: var(--px) solid var(--line); }
+.k-legend .chain-key { padding: 12px 14px; }
+@media (max-width: 700px) { .k-legend { width: 230px; left: 12px; bottom: 10px; } }
+
+/* The chests of the snapshot vault: invisible buttons over the picture, to move the pointer. */
+.chests { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.chest { position: absolute; padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; }
+.chest:hover { outline: 2px solid var(--head); outline-offset: 1px; }
+.chest:focus-visible { outline: 3px solid var(--head); outline-offset: 2px; }
