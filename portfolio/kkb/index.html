@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A data agent for Turkish finance | littlestronomer</title>
+    <meta name="description" content="Uçan Hamsiler's 1st place at the KKB Hackathon: Agentic Data Analytics. An agent with 45 tools that answers questions about the Turkish economy from central bank and banking data." />
+    <meta name="author" content="Göktürk Batın Dervişoğlu" />
+    <meta name="theme-color" content="#3a3121" />
+    <link rel="canonical" href="https://littlestronomer.github.io/kkb/" />
+    <!-- How the page looks when its link is shared on LinkedIn, Discord, X and the like. -->
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="littlestronomer" />
+    <meta property="og:title" content="A data agent for Turkish finance" />
+    <meta property="og:description" content="Uçan Hamsiler's 1st place at the KKB Hackathon: Agentic Data Analytics. An agent with 45 tools that answers questions about the Turkish economy." />
+    <meta property="og:url" content="https://littlestronomer.github.io/kkb/" />
+    <meta property="og:image" content="https://littlestronomer.github.io/og-portfolio.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./kkb.css" />
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="k-eng" viewBox="0 0 6 9">
+          <rect x="1" y="0" width="4" height="1" fill="#c97a2a" />
+          <rect x="2" y="1" width="2" height="1" fill="#f0c08a" />
+          <rect x="1" y="2" width="4" height="4" fill="#b8742f" />
+          <rect x="0" y="3" width="1" height="2" fill="#8e5622" />
+          <rect x="5" y="3" width="1" height="2" fill="#8e5622" />
+          <rect x="2" y="3" width="2" height="1" fill="#5b6d7a" />
+          <rect x="1" y="6" width="1" height="3" fill="#3b3b3b" />
+          <rect x="4" y="6" width="1" height="3" fill="#3b3b3b" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <div class="runway" id="runway">
+      <div class="stage" id="stage">
+        <header class="bar pixel-frame" id="bar">
+          <canvas id="mast" aria-hidden="true"></canvas>
+          <div class="k-words">
+            <p class="k-wordmark">Uçan Hamsiler</p>
+            <p class="k-tagline">1st place, KKB Hackathon 2026</p>
+          </div>
+          <nav class="tabs" aria-label="Sections">
+            <a href="#k-hello" data-card="k-hello">Overview</a>
+            <a href="#k-brief" data-card="k-brief">The brief</a>
+            <a href="#k-data" data-card="k-data">Data</a>
+            <a href="#k-agent" data-card="k-agent">The agent</a>
+            <a href="#k-trust" data-card="k-trust">Trust</a>
+            <a href="#k-result" data-card="k-result">The result</a>
+            <a href="/">Portfolio</a>
+          </nav>
+        </header>
+
+        <canvas class="scene" id="scene" aria-hidden="true"></canvas>
+
+        <div class="slide" id="slide">
+          <div class="labels" id="labels" aria-hidden="true"></div>
+          <div class="chests" id="chests"></div>
+
+          <main class="cards">
+            <article class="k-note k-card k-hello pixel-frame" id="k-hello" data-anchor="start" data-w="720" data-tab="k-hello">
+              <h1>A data agent for Turkish finance</h1>
+              <p class="k-lead">
+                Kredi Kayıt Bürosu, Turkey's credit bureau, and Coderspace asked teams to turn data into
+                value with agentic AI. With Ahmet Selim Özel and Alihan Esen, I built an agent that
+                answers questions about the Turkish economy from central bank and banking data, and we
+                took 1st place.
+              </p>
+              <p class="k-walk">Scroll to walk along the line, from raw data to a checked answer &rarr;</p>
+              <ul class="k-highlights">
+                <li><strong>1st place</strong> at KKB Hackathon: Agentic Data Analytics, 2026</li>
+                <li><strong>13 million rows</strong> of TCMB EVDS and BDDK data in a lakehouse</li>
+                <li><strong>45 tools</strong> the agent calls to find, compute and chart</li>
+                <li><strong>45 of 45 checks</strong> on questions it had never seen</li>
+              </ul>
+              <p class="k-links">
+                <a href="https://www.linkedin.com/posts/kkb-hackathon-agentic-data-analytics-tamamland%C4%B1-share-7517233459103404032-Q97m/">The announcement</a>
+                <a href="/">Back to the portfolio</a>
+              </p>
+            </article>
+
+            <aside class="k-card k-crew" id="k-crew" data-anchor="after" data-w="300" data-tab="k-hello" aria-label="The team and what it used">
+              <section class="k-note pixel-frame">
+                <h2>Engineers</h2>
+                <ul class="k-team">
+                  <li><svg viewBox="0 0 6 9" aria-hidden="true"><use href="#k-eng" /></svg>Ahmet Selim Özel</li>
+                  <li><svg viewBox="0 0 6 9" aria-hidden="true"><use href="#k-eng" /></svg>Alihan Esen</li>
+                  <li><svg viewBox="0 0 6 9" aria-hidden="true"><use href="#k-eng" /></svg>Göktürk Batın Dervişoğlu</li>
+                </ul>
+              </section>
+              <section class="k-note pixel-frame">
+                <h2>Recipe</h2>
+                <ul class="k-recipe">
+                  <li>PydanticAI</li><li>DeepSeek V4.1 Flash</li><li>DuckDB</li><li>FastAPI</li><li>React</li><li>Podman</li>
+                </ul>
+                <p class="k-meta">Crafting time: one hackathon. Produces: a Turkish answer with its sources.</p>
+              </section>
+            </aside>
+
+            <article class="k-note k-card pixel-frame" id="k-brief" data-anchor="after" data-w="420" data-tab="k-brief">
+              <h2>The brief</h2>
+              <p>
+                KKB wanted agents that turn data into value for its business, its products or society.
+                The kick-off named six kinds of tools an agent should have: a lakehouse, web search,
+                reading web pages, finding anomalies, finding change points, and testing causality.
+                Everything had to run on open-weight models served through MIA, and the questions came
+                in Turkish.
+              </p>
+            </article>
+
+            <article class="k-note k-card pixel-frame" id="k-data" data-anchor="after" data-w="400" data-tab="k-data">
+              <h2>Mines: the data</h2>
+              <h3>Two ore fields</h3>
+              <p>
+                TCMB EVDS, the central bank's data service: a catalog of 53,842 series and 6.1 million observations.
+                BDDK, the banking regulator: monthly, weekly and FinTürk bulletins, 6.9 million rows.
+                Both from January 2021 to June 2026.
+              </p>
+            </article>
+
+            <article class="k-note k-card pixel-frame" id="k-lake" data-anchor="fur" data-w="420" data-tab="k-data">
+              <h2>Furnaces: the lakehouse</h2>
+              <h3>Bronze, silver, gold</h3>
+              <p>
+                Raw files land in bronze unchanged, become clean series in silver and coverage tables in
+                gold, and are published read-only as DuckDB.
+              </p>
+            </article>
+
+            <article class="k-note k-card pixel-frame" id="k-versions" data-anchor="vault" data-w="440" data-tab="k-data">
+              <h2>The vault: snapshots</h2>
+              <p>
+                Every dataset is stored as an immutable snapshot, one chest for each version. That makes
+                the lakehouse work like git: a name such as <em>latest</em> is only a pointer you can move
+                to any snapshot, so going back to an earlier version is easy. Each chat is pinned to one
+                snapshot, so new data never changes an answer halfway through.
+              </p>
+            </article>
+
+            <article class="k-note k-card pixel-frame" id="k-agent" data-anchor="agent" data-w="540" data-tab="k-agent">
+              <h2>The assembly line: the agent</h2>
+              <p>
+                One PydanticAI agent with 45 typed tools. The model decides which tool to call; the
+                server does the arithmetic, the statistics and the charts, so every number in an answer
+                comes from a tool. Asked to compare real mortgage rates with house prices since 2021, it
+                runs:
+              </p>
+              <p class="k-chain">resolve_series → build_table → deflate_column → index_columns → plot_table → analyze_causality</p>
+            </article>
+
+            <article class="k-note k-card pixel-frame" id="k-trains" data-anchor="trains" data-w="400" data-tab="k-agent">
+              <h2>Trains from outside</h2>
+              <p>
+                When the data isn't in the lakehouse, the agent reads web pages, PDFs, Excel, JSON and
+                images, with OCR for scanned pages. For pages that load their data with JavaScript it has
+                <code>discover_api</code>, a tool that investigates the site's API: it reads the page's own
+                scripts, finds the endpoints behind them and learns how they are called.
+              </p>
+            </article>
+
+            <article class="k-note k-card pixel-frame" id="k-trust" data-anchor="trust" data-w="440" data-tab="k-trust">
+              <h2>Turrets and walls: trust</h2>
+              <p>
+                Small models make up numbers, mix up dates and drift into English. Guards in the harness
+                catch each of these and send the answer back to be rewritten, along the red belts; in
+                testing they pulled back 13 answers. Code the agent writes runs in a rootless Podman
+                container with no network.
+              </p>
+            </article>
+
+            <article class="k-note k-card pixel-frame" id="k-result" data-anchor="result" data-w="400" data-tab="k-result">
+              <h2>The rocket: the result</h2>
+              <p>
+                On questions it had never seen it passed 12 of 12 steps and 45 of 45 checks. After the
+                online rounds we presented to the jury in person, and Uçan Hamsiler took 1st place.
+              </p>
+            </article>
+
+            <aside class="k-card" id="k-credits" data-anchor="credits" data-w="360" data-tab="k-result" aria-label="The numbers">
+              <section class="k-note pixel-frame">
+                <h2>Production statistics</h2>
+                <div class="k-stats">
+                  <div class="k-stat"><span>Held-out questions, steps</span><b>12 / 12</b><div class="k-bar"><span style="width: 100%"></span></div></div>
+                  <div class="k-stat"><span>Held-out questions, checks</span><b>45 / 45</b><div class="k-bar"><span style="width: 100%"></span></div></div>
+                  <div class="k-stat"><span>Mentor and demo steps</span><b>15 / 15</b><div class="k-bar"><span style="width: 100%"></span></div></div>
+                  <div class="k-stat"><span>Whole scenarios in one message</span><b>12 / 13</b><div class="k-bar"><span style="width: 92%"></span></div></div>
+                </div>
+              </section>
+            </aside>
+          </main>
+        </div>
+
+        <details class="k-legend pixel-frame">
+          <summary>What rides the belt</summary>
+          <ul class="chain-key" id="chain-key"></ul>
+        </details>
+      </div>
+    </div>
+
+    <script type="module" src="./factory.js"></script>
+  </body>
+</html>

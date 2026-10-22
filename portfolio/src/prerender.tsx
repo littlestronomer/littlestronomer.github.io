@@ -68,6 +68,7 @@ export function llmsText() {
 ## About this site
 
 - [Portfolio](${SITE_URL}): these notes on a pixel-art night sky, next to a small neural network that trains live in the browser
+- [A data agent for Turkish finance](${link('/kkb/')}): the project page for our 1st place at the KKB Hackathon, with a Factorio-style factory behind the notes
 - [A walk along the water](${link('/walk/')}): my hobby corner, a painted shore that scrolls sideways, with a paper boat and nothing to read
 `
 }

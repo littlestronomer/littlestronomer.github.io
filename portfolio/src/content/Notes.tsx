@@ -76,6 +76,9 @@ export function HelloNote() {
       </p>
       <ul className="note-highlights">
         <li>
+          <strong>1st place</strong> at the KKB Hackathon, 2026
+        </li>
+        <li>
           <strong>Paper accepted</strong> at Agenthon 2026, a NeurIPS workshop
         </li>
         <li>
@@ -159,6 +162,15 @@ export function BuiltNote() {
   return (
     <article className="note note-built" id="note-built" tabIndex={-1} aria-labelledby="note-built-title">
       <h2 id="note-built-title">Things I&apos;ve built</h2>
+      <h3>A data agent for Turkish finance</h3>
+      <p>
+        An agent with 45 tools that answers questions about the Turkish economy from 13 million rows
+        of central bank and banking data, built with two teammates for the KKB Hackathon. It took
+        1st place.
+      </p>
+      <p className="note-links">
+        <a href="/kkb/">See how it works</a>
+      </p>
       <h3>Gated DeltaNet on the GPU</h3>
       <p>
         Separate CUDA paths for decoding and prefill, 1.07× and 5.33× faster than FlashInfer. It
@@ -205,6 +217,12 @@ export function AwardsNote() {
   return (
     <article className="note note-awards" id="note-awards" tabIndex={-1} aria-labelledby="note-awards-title">
       <h2 id="note-awards-title">Competitions</h2>
+      <h3>1st place</h3>
+      <p className="note-meta">KKB Hackathon: Agentic Data Analytics, 2026</p>
+      <p>
+        A data agent for Turkish finance, with Ahmet Selim Özel and Alihan Esen.{' '}
+        <a href="/kkb/">See the project</a>
+      </p>
       <h3>4th place</h3>
       <p className="note-meta">NVIDIA MLSys Competition, Gated DeltaNet track, 2026</p>
       <h3>Silver medal</h3>
